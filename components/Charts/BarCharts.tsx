@@ -17,11 +17,9 @@ import {
 import {
   ChartConfig,
   ChartContainer,
-  ChartLegend,
   ChartTooltip,
   ChartTooltipContent,
 } from "@/components/ui/chart";
-import { interests } from "@/constants";
 
 export const description = "A bar chart";
 

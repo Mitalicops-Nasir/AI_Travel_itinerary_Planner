@@ -104,6 +104,7 @@ ${colorConfig
 
 const ChartTooltip = RechartsPrimitive.Tooltip
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 function ChartTooltipContent({
   active,
   payload,
@@ -250,6 +251,8 @@ function ChartTooltipContent({
 
 const ChartLegend = RechartsPrimitive.Legend
 
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 function ChartLegendContent({
   className,
   hideIcon = false,
