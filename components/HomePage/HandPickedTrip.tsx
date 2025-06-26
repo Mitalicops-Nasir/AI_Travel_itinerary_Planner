@@ -70,7 +70,7 @@ const HandPickedTrip = ({ theTrip }: { theTrip: TheTripInDB[] }) => {
             <div
               key={trip.id}
               onClick={() => handleClick(trip.id)}
-              className="bg-[#FFFFFF] cursor-pointer drop-shadow-xl rounded-[20px]"
+              className="bg-[#FFFFFF] cursor-pointer relative drop-shadow-xl rounded-[20px]"
             >
               <Image
                 src={

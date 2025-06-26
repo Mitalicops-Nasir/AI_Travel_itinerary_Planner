@@ -42,7 +42,7 @@ export const Navbar = ({className}: {className?: string}) => {
       )}
 
       <div className="flex items-center gap-6 max-[700px]:hidden">
-        <Link href="/Dashboard" className="font-[400] text-white text-[16px]">
+        <Link href="/dashboard" className="font-[400] text-white text-[16px]">
           Admin Panel
         </Link>
 
@@ -76,8 +76,8 @@ export const MobileNav = () => {
     <div className="hidden max-[700px]:block absolute z-[20] right-[95px] top-[90px]">
       <div className="flex items-center gap-6 flex-col bg-[#256FF1] p-3 rounded-[10px]">
         <div className="p-3 bg-white rounded-[13px]">
-          <Link href="/admin" className="font-[400] text-[16px]">
-            Admin Panel
+          <Link href="/dashboard" className="font-[400] text-[16px]">
+            Dashboard Panel
           </Link>
         </div>
 
