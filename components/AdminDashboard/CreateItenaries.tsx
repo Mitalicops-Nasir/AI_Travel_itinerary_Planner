@@ -23,7 +23,6 @@ import TripMapForGeneration from "../TripDetails/TripMap";
 import dynamic from "next/dynamic";
 import { getName } from "country-list";
 import { createTrip, GenerateAITripIternary } from "@/actions/CreateTrip";
-import { th } from "zod/dist/types/v4/locales";
 import { toast } from "sonner";
 
 const ReactFlagsSelect = dynamic(() => import("react-flags-select"), {

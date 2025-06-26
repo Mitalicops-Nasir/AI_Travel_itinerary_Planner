@@ -27,7 +27,7 @@ const AITrips = ({ theTrip }: { theTrip: TheTripInDB[] }) => {
     "#FFF1F3",
   ];
 
- const textColor = [
+  const textColor = [
     "#027A48",
     "#6941C6",
     "#026AA2",
@@ -98,7 +98,7 @@ const AITrips = ({ theTrip }: { theTrip: TheTripInDB[] }) => {
               />
 
               <span className="absolute pb-[4px] pl-[10px] pr-[10px] pt-[4px] bg-[#FFFFFF] rounded-[20px] text-[14px] font-[600] top-[10px] right-[10px]">
-                {trip.aiResponse?.estimatedPrice || "$0"}
+                ${trip.aiResponse?.estimatedPrice || "0"}
               </span>
 
               <div className="p-5 flex flex-col gap-4">

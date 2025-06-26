@@ -5,6 +5,8 @@ import "leaflet/dist/leaflet.css";
 import L from "leaflet";
 import { useEffect, useState } from "react";
 
+import { world_map } from "@/world_map";
+
 // fix default marker icon issue
 delete (L.Icon.Default.prototype as any)._getIconUrl;
 L.Icon.Default.mergeOptions({

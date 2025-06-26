@@ -16,10 +16,12 @@ export default auth((req) => {
 
   // ✅ Allow API auth routes
   const isApiAuthRoute = nextUrl.pathname.startsWith(apiAuthPrefix);
+
   const isPublicRoute = publicRoutes.includes(nextUrl.pathname);
   const isAuthRoute = authRoutes.includes(nextUrl.pathname);
 
   // ✅ Allow public routes AND any path that starts with a public prefix
+  // ✅ Wildcard match for public routes
   const isPublic = publicRoutes.some((route) => {
     if (route.endsWith("*")) {
       return nextUrl.pathname.startsWith(route.replace("*", ""));
@@ -27,14 +29,17 @@ export default auth((req) => {
     return nextUrl.pathname === route;
   });
 
+  // ✅ Allow access to public routes
   if (isPublic) {
     return null;
   }
 
+  // ✅ Allow API auth routes
   if (isApiAuthRoute) {
     return null;
   }
 
+  // ✅ Redirect logged-in users away from auth pages (e.g. /auth/login)
   if (isAuthRoute) {
     if (isLoggedIn) {
       return Response.redirect(new URL(DEFAULT_LOGIN_REDIRECT, nextUrl));
@@ -42,9 +47,12 @@ export default auth((req) => {
     return null;
   }
 
+  // ✅ Redirect unauthenticated users trying to access protected routes
   if (!isLoggedIn && !isPublicRoute) {
     return Response.redirect(new URL("/auth/login", req.nextUrl.origin));
   }
+
+  // ✅ Allow everything else
   return null;
 });
 

@@ -87,7 +87,7 @@ const SideNavbar = ({ user }: { user?: ExtendedUser }) => {
 
       <div className="pl-[26px] pr-[26px] pb-[16px] pt-[16px] flex items-center gap-3 rounded-[10px] max-[768px]:hidden max-[1025px]:pl-[8px]">
         <Image
-          src={user?.image! || "/assets/images/default-pic.jpg"}
+          src={user?.image! ? user?.image : `/assets/images/default-pic.jpg`}
           alt="user"
           width={40}
           height={40}

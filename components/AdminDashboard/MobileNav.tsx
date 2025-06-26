@@ -42,7 +42,9 @@ const MobileNav = ({ user }: { user?: ExtendedUser }) => {
         <div className="flex items-center gap-3 p-2 bg-white rounded-[13px]">
           <div className="pl-[10px] pr-[10px] pb-[16px] pt-[16px] flex items-center gap-3 rounded-[10px]">
             <Image
-              src={user?.image! || "/assets/images/default-pic.jpg"}
+              src={
+                user?.image! ? user?.image : `/assets/images/default-pic.jpg`
+              }
               alt="user"
               width={40}
               height={40}
