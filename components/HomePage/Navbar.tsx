@@ -42,7 +42,7 @@ export const Navbar = ({className}: {className?: string}) => {
       )}
 
       <div className="flex items-center gap-6 max-[700px]:hidden">
-        <Link href="/admin" className="font-[400] text-white text-[16px]">
+        <Link href="/Dashboard" className="font-[400] text-white text-[16px]">
           Admin Panel
         </Link>
 

@@ -14,24 +14,21 @@ export default auth((req) => {
   const { nextUrl } = req;
   const isLoggedIn = !!req.auth;
 
+  // ✅ Allow API auth routes
   const isApiAuthRoute = nextUrl.pathname.startsWith(apiAuthPrefix);
   const isPublicRoute = publicRoutes.includes(nextUrl.pathname);
   const isAuthRoute = authRoutes.includes(nextUrl.pathname);
 
-
-  // ✅ Allow API auth routes
-  //if (nextUrl.pathname.startsWith(apiAuthPrefix)) {
-    //return Response.redirect(new URL(apiAuthPrefix, nextUrl));
-  //}
-
   // ✅ Allow public routes AND any path that starts with a public prefix
-  const isPublic = publicRoutes.some(
-    (route) =>
-      nextUrl.pathname === route || nextUrl.pathname.startsWith(`${route}/`)
-  );
+  const isPublic = publicRoutes.some((route) => {
+    if (route.endsWith("*")) {
+      return nextUrl.pathname.startsWith(route.replace("*", ""));
+    }
+    return nextUrl.pathname === route;
+  });
 
   if (isPublic) {
-    return Response.redirect(new URL(nextUrl.pathname, nextUrl));
+    return null;
   }
 
   if (isApiAuthRoute) {
