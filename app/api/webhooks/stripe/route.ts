@@ -9,8 +9,10 @@ import Stripe from "stripe";
 export const runtime = "nodejs";
 
 export async function POST(req: any) {
-  //const rawBody = await req.text();
-  const rawBody = await buffer(req.body);
+  const rawBody = await req.text();
+
+  //const rawBody = await buffer(req.body);
+
   const headersList = await headers();
 
   const sig = headersList.get("stripe-signature") as string;
