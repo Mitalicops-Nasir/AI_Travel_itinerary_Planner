@@ -1,12 +1,12 @@
 import { LoginForm } from "@/FormsRelatedConfig/LoginForm";
-import React from "react";
+import React, { Suspense } from "react";
 
 const Login = () => {
   return (
     <div>
-      <LoginForm
-        
-      />
+      <Suspense fallback={<div>Loading login...</div>}>
+        <LoginForm />
+      </Suspense>
     </div>
   );
 };

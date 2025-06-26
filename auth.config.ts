@@ -7,6 +7,9 @@ import google from "next-auth/providers/google";
 
 import { loginSchema } from "./FormsRelatedConfig/validationZod/loginUser";
 
+export const runtime = "nodejs";
+
+
 export default {
   providers: [
     google({
@@ -59,3 +62,4 @@ export default {
     }),
   ],
 } satisfies NextAuthConfig;
+

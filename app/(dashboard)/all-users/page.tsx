@@ -3,6 +3,8 @@ import AllUser from "@/components/AdminDashboard/AllUserTable";
 import { currentUser } from "@/lib/auth";
 import React from "react";
 
+export const dynamic = "force-dynamic";
+
 const page = async () => {
   const ManyUsers = await getAllUsers();
   const TheCurrentUser = await currentUser();
