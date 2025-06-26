@@ -5,14 +5,11 @@ import { headers } from "next/headers";
 import { NextResponse } from "next/server";
 import Stripe from "stripe";
 
-export const config = {
-  api: {
-    bodyParser: false, // Required by Stripe to read raw body
-  },
-};
+export const runtime = "nodejs";
+
 
 export async function POST(req: Request) {
-  const rawBody = await req.text(); // or use buffer for older versions
+  const rawBody = await req.text();
 
   const headersList = await headers();
 

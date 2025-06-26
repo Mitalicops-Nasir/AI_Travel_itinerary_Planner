@@ -70,7 +70,7 @@ export async function GenerateAITripIternary(
     {
     "name": "A descriptive title for the trip",
     "description": "A brief description of the trip and its highlights not exceeding 100 words",
-    "estimatedPrice": "Lowest average price for the trip in USD, e.g.price only, no currency sign",
+    "estimatedPrice": "Lowest average price for the trip in USD, e.g.price only in digits like 6000, no currency sign",
     "duration": ${values.duration},
     "budget": "${values.budgetEstimate}",
     "travelStyle": "${values.travelStyle}",

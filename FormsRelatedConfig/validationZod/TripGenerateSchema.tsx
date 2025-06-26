@@ -24,8 +24,8 @@ export const TripGenerateSchema = z.object({
     .string()
     .min(3, { message: "Name must be at least 3 characters long" }),
   description: z.string(),
-  estimatedPrice: z.string().regex(/^\$\d+$/, {
-    message: "Estimated price must be in the format $price",
+  estimatedPrice: z.string().regex(/^\d+$/, {
+    message: "Estimated price must be a numeric string like '6000'",
   }),
   duration: z
     .number()
