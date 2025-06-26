@@ -7,7 +7,6 @@ import {
   publicRoutes,
 } from "@/routes";
 import authConfig from "./auth.config";
-
 const { auth } = NextAuth(authConfig);
 
 //@ts-expect-error
@@ -31,7 +30,7 @@ export default auth((req) => {
   }
 
   if (!isLoggedIn && !isPublicRoute) {
-    return Response.redirect(new URL("/auth/login", nextUrl));
+    return Response.redirect(new URL("/auth/login", req.nextUrl.origin));
   }
   return null;
 });

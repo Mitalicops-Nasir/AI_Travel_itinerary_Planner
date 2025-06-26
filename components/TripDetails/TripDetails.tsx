@@ -62,8 +62,17 @@ const TheTripDetails = ({
   ];
 
   const onSubmit = async () => {
-    setIsLoading(true);
     try {
+      setIsLoading(true);
+
+      if (!userId) {
+        toast.error("Make sure you are logged in to make a payment.");
+
+        setIsLoading(false);
+
+        router.push("/auth/login");
+      }
+
       const url = await createCheckoutSession(
         individualTrip.id,
         individualTrip.aiResponse.title,
