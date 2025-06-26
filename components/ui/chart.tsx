@@ -253,7 +253,6 @@ function ChartTooltipContent({
 
 const ChartLegend = RechartsPrimitive.Legend;
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
 function ChartLegendContent({
   className,
   hideIcon = false,
@@ -261,12 +260,15 @@ function ChartLegendContent({
   verticalAlign = "bottom",
   nameKey,
 }: React.ComponentProps<"div"> &
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  //@ts-expect-error
   Pick<RechartsPrimitive.LegendProps, "payload" | "verticalAlign"> & {
     hideIcon?: boolean;
     nameKey?: string;
   }) {
   const { config } = useChart();
 
+  //@ts-expect-error
   if (!payload?.length) {
     return null;
   }
@@ -279,6 +281,7 @@ function ChartLegendContent({
         className
       )}
     >
+      {/* @ts-expect-error */}
       {payload.map((item) => {
         const key = `${nameKey || item.dataKey || "value"}`;
         const itemConfig = getPayloadConfigFromPayload(config, item, key);
@@ -354,4 +357,5 @@ export {
   ChartLegend,
   ChartLegendContent,
   ChartStyle,
+
 };
