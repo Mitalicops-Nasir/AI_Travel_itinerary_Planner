@@ -24,6 +24,7 @@ import dynamic from "next/dynamic";
 import { getName } from "country-list";
 import { createTrip, GenerateAITripIternary } from "@/actions/CreateTrip";
 import { toast } from "sonner";
+import { useRouter } from "next/navigation";
 
 const ReactFlagsSelect = dynamic(() => import("react-flags-select"), {
   ssr: false, // avoids hydration mismatch error
@@ -33,6 +34,8 @@ const ReactFlagsSelect = dynamic(() => import("react-flags-select"), {
 const CreateItenaries = ({ userId }: { userId: string | undefined }) => {
   const [disabled, setDisabled] = useState(false);
   const [selected, setSelectedCountry] = useState<string>("US"); //the state is being used to show the flag and name once clicked otherwise the "watch" updates state directly from the form value
+
+  const router = useRouter();
 
   const form = useForm<z.infer<typeof NewTrip>>({
     resolver: zodResolver(NewTrip),
@@ -74,6 +77,8 @@ const CreateItenaries = ({ userId }: { userId: string | undefined }) => {
 
       if (MakeTripInDB.success) {
         toast.success("Trip Generated successfully!");
+
+        router.push(`/Trip/${MakeTripInDB.trip.id}/Trip-Details`);
 
         setDisabled(false);
         return;

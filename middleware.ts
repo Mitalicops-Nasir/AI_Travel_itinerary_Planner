@@ -29,6 +29,11 @@ export default auth((req) => {
     return nextUrl.pathname === route;
   });
 
+  // ✅ Allow API route of stripe
+   if (nextUrl.pathname === "/api/stripe") {
+    return null// allow through, no redirect
+  }
+
   // ✅ Allow access to public routes
   if (isPublic) {
     return null;
