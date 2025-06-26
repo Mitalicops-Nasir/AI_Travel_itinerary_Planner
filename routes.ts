@@ -5,7 +5,7 @@
  */
 
 export const publicRoutes = [
-  "/Trip",
+  "/Trip*",
   "/",
   "/AI-Trips",
   "/auth/new-verification",

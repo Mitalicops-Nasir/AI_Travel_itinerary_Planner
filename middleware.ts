@@ -18,15 +18,21 @@ export default auth((req) => {
   const isPublicRoute = publicRoutes.includes(nextUrl.pathname);
   const isAuthRoute = authRoutes.includes(nextUrl.pathname);
 
-  if (nextUrl.pathname.startsWith(apiAuthPrefix)) {
-    return Response.redirect(new URL(apiAuthPrefix, nextUrl));
-  }
+
+  // ✅ Allow API auth routes
+  //if (nextUrl.pathname.startsWith(apiAuthPrefix)) {
+    //return Response.redirect(new URL(apiAuthPrefix, nextUrl));
+  //}
 
   // ✅ Allow public routes AND any path that starts with a public prefix
   const isPublic = publicRoutes.some(
     (route) =>
       nextUrl.pathname === route || nextUrl.pathname.startsWith(`${route}/`)
   );
+
+  if (isPublic) {
+    return Response.redirect(new URL(nextUrl.pathname, nextUrl));
+  }
 
   if (isApiAuthRoute) {
     return null;
