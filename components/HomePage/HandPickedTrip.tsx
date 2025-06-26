@@ -80,7 +80,7 @@ const HandPickedTrip = ({ theTrip }: { theTrip: TheTripInDB[] }) => {
                 width={300}
                 height={300}
                 alt="sample"
-                className="rounded-tl-[20px] rounded-tr-[20px] h-[180px] object-cover w-full relative"
+                className="rounded-tl-[20px] rounded-tr-[20px] h-[180px] object-cover w-full"
               />
 
               <span className="absolute pb-[4px] pl-[10px] pr-[10px] pt-[4px] bg-[#FFFFFF] rounded-[20px] text-[14px] font-[600] top-[10px] right-[10px]">
