@@ -1,0 +1,174 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mongodb"
+  url      = env("DATABASE_URL")
+}
+
+enum UserRole {
+  ADMIN
+  USER
+}
+
+model User {
+  id                    String                 @id @default(cuid()) @map("_id")
+  name                  String
+  email                 String                 @unique
+  emailVerified         DateTime?
+  phone                 String?
+  image                 String?
+  password              String?
+  role                  UserRole               @default(USER)
+  accounts              Account[]
+  isTwoFactorEnabled    Boolean                @default(false)
+  twoFactorConfirmation TwoFactorConfirmation?
+  createdAt             DateTime?              @default(now())
+  trip                  Trip[]
+
+  booking Booking[]
+}
+
+model Account {
+  id                String  @id @default(cuid()) @map("_id")
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String?
+  access_token      String?
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String?
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+}
+
+model VerificationToken {
+  id      String   @id @default(cuid()) @map("_id")
+  email   String
+  token   String   @unique
+  expires DateTime
+
+  @@unique([email, token])
+}
+
+model PasswordResetToken {
+  id      String   @id @default(cuid()) @map("_id")
+  email   String
+  token   String   @unique
+  expires DateTime
+
+  @@unique([email, token])
+}
+
+model TwoFactorToken {
+  id      String   @id @default(cuid()) @map("_id")
+  email   String
+  token   String   @unique
+  expires DateTime
+
+  @@unique([email, token])
+}
+
+model TwoFactorConfirmation {
+  id String @id @default(cuid()) @map("_id")
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId])
+}
+
+model Trip {
+  id     String @id @default(cuid()) @map("_id")
+  userId String
+  user   User   @relation(fields: [userId], references: [id])
+
+  country        String
+  duration       Int
+  groupType      String
+  travelStyle    String
+  interests      String
+  budgetEstimate String
+
+  createdAt  DateTime    @default(now())
+  aiResponse AIResponse?
+
+  ratings TripRating[]
+
+  booking Booking[]
+
+  @@index([userId])
+}
+
+model AIResponse {
+  id     String @id @default(cuid()) @map("_id")
+  tripId String @unique
+  trip   Trip   @relation(fields: [tripId], references: [id], onDelete: Cascade)
+
+  title           String
+  description     String
+  estimatedPrice  String
+  duration        Int
+  budget          String
+  travelStyle     String
+  country         String
+  interests       String
+  groupType       String
+  tags            String[] // store array of tags
+  bestTimeToVisit String[] // store array of seasons
+  weatherInfo     String[] // store array of weather details
+  location        Json // { city, coordinates, openStreetMap }
+  images          String[] // Unsplash image URLs
+  itinerary       Json // detailed day-wise activities
+
+  createdAt DateTime @default(now())
+}
+
+model TripRating {
+  id     String @id @default(cuid()) @map("_id")
+  userId String // So a user can only rate once
+  tripId String
+  rating Int // From 1 to 5, for example
+
+  createdAt DateTime @default(now())
+
+  // Relations
+  trip Trip @relation(fields: [tripId], references: [id])
+
+  @@unique([userId, tripId])
+}
+
+model Booking {
+  id     String @id @default(cuid()) @map("_id")
+  userId String
+  tripId String
+
+  user User @relation(fields: [userId], references: [id])
+  trip Trip @relation(fields: [tripId], references: [id])
+
+  priceInCents    Int // e.g., 2000 for $20.00
+  currency        String        @default("usd")
+  stripeSessionId String? // populated after checkout
+  status          BookingStatus @default(PENDING)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([userId, tripId]) // prevent duplicate bookings
+}
+
+enum BookingStatus {
+  PENDING // Created but not paid
+  PAID // Paid successfully
+  CANCELLED // Stripe canceled or failed
+}
