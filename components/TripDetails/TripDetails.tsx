@@ -101,7 +101,7 @@ const TheTripDetails = ({
 
   return (
     <>
-      <section className="bg-[#F9FBFC] pl-[50px] pr-[50px] pt-[30px] h-full">
+      <section className="bg-[#F9FBFC] pl-[50px] pr-[50px] pt-[30px] max-[768px]:pl-[15px] max-[768px]:pr-[15px] h-full">
         <div className="flex gap-[10px] max-[770px]:flex-col">
           <Button
             className="bg-[#FFFFFF] pt-[12px] h-[56px] w-[147px] pr-[30px] pb-[12px] pl-[30px] rounded-[1px]"
