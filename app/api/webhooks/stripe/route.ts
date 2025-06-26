@@ -3,14 +3,14 @@ import { db } from "@/data/db";
 import { stripe } from "@/lib/stripe";
 import { headers } from "next/headers";
 import { NextResponse } from "next/server";
+import { buffer } from "node:stream/consumers";
 import Stripe from "stripe";
 
 export const runtime = "nodejs";
 
-
-export async function POST(req: Request) {
-  const rawBody = await req.text();
-
+export async function POST(req: any) {
+  //const rawBody = await req.text();
+  const rawBody = await buffer(req.body);
   const headersList = await headers();
 
   const sig = headersList.get("stripe-signature") as string;
@@ -47,14 +47,18 @@ export async function POST(req: Request) {
       );
 
       if (tripId && userId) {
-        await db.booking.create({
-          data: {
-            userId,
-            tripId,
-            status: "PAID",
-            priceInCents: amount!,
-          },
-        });
+        try {
+          await db.booking.create({
+            data: {
+              userId,
+              tripId,
+              status: "PAID",
+              priceInCents: amount!,
+            },
+          });
+        } catch (error) {
+          console.log(error);
+        }
       }
 
       break;
@@ -71,23 +75,27 @@ export async function POST(req: Request) {
       const amount = invoice.amount_paid;
 
       if (tripId && userId) {
-        await db.booking.upsert({
-          where: {
-            userId_tripId: {
+        try {
+          await db.booking.upsert({
+            where: {
+              userId_tripId: {
+                userId,
+                tripId,
+              },
+            },
+            update: {
+              status: "PAID",
+            },
+            create: {
               userId,
               tripId,
+              status: "PAID",
+              priceInCents: amount,
             },
-          },
-          update: {
-            status: "PAID",
-          },
-          create: {
-            userId,
-            tripId,
-            status: "PAID",
-            priceInCents: amount,
-          },
-        });
+          });
+        } catch (error) {
+          console.log(error);
+        }
       }
 
       break;
@@ -96,8 +104,6 @@ export async function POST(req: Request) {
     default:
       console.log(`Unhandled event type: ${event.type}`);
   }
-
-  console.log("THE RESPONSE", NextResponse);
 
   return new NextResponse(null, { status: 200 });
 }
