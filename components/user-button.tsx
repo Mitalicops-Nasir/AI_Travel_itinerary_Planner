@@ -15,7 +15,6 @@ export const UserButton = ({
 }: {
   image?: string | null | undefined;
 }) => {
-
   return (
     <DropdownMenu>
       <DropdownMenuTrigger className="hidden max-[756px]:block cursor-pointer">
