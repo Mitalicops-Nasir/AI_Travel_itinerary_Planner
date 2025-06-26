@@ -14,6 +14,11 @@ export default auth((req) => {
   const { nextUrl } = req;
   const isLoggedIn = !!req.auth;
 
+  // ✅ Allow API route of stripe
+  if (req.nextUrl.pathname.startsWith("/api/stripe")) {
+    return null;
+  }
+
   // ✅ Allow API auth routes
   const isApiAuthRoute = nextUrl.pathname.startsWith(apiAuthPrefix);
 
@@ -28,11 +33,6 @@ export default auth((req) => {
     }
     return nextUrl.pathname === route;
   });
-
-  // ✅ Allow API route of stripe
-   if (nextUrl.pathname === "/api/stripe") {
-    return null// allow through, no redirect
-  }
 
   // ✅ Allow access to public routes
   if (isPublic) {
