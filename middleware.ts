@@ -7,6 +7,7 @@ import {
   publicRoutes,
 } from "@/routes";
 import authConfig from "./auth.config";
+import { NextResponse } from "next/server";
 const { auth } = NextAuth(authConfig);
 
 //@ts-expect-error
@@ -16,7 +17,7 @@ export default auth((req) => {
 
   // ✅ Allow API route of stripe
   if (req.nextUrl.pathname.startsWith("/api/stripe")) {
-    return null;
+    return NextResponse.next();
   }
 
   // ✅ Allow API auth routes
