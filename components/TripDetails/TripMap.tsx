@@ -4,7 +4,6 @@ import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
 import L from "leaflet";
 import { useEffect, useState } from "react";
-import { world_map } from "@/world_map";
 
 // fix default marker icon issue
 delete (L.Icon.Default.prototype as any)._getIconUrl;
@@ -78,7 +77,9 @@ export default function TripMapForGeneration({
 
   if (!position) {
     return (
-      <p className="text-gray-500 mt-3 ml-2">Select a country to view it on the map</p>
+      <p className="text-gray-500 mt-3 ml-2">
+        Select a country to view it on the map
+      </p>
     );
   }
 

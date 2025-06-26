@@ -19,7 +19,6 @@ import {
 import { SelectItem } from "../ui/select";
 import { NewTrip } from "@/FormsRelatedConfig/validationZod/TripGenerateSchema";
 
-import { AllCountries } from "@/all_countries_with_flags";
 import TripMapForGeneration from "../TripDetails/TripMap";
 import dynamic from "next/dynamic";
 import { getName } from "country-list";

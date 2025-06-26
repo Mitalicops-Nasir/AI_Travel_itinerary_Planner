@@ -7,11 +7,12 @@ import Image from "next/image";
 import { cn } from "@/lib/utils";
 import { DemoStars } from "@/constants";
 import PopularTrips from "./PopularTrips";
-import { TripMap } from "./TripMap";
+
 import RatingForm from "../RatingForm";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 import { createCheckoutSession } from "@/actions/create-checkout-session";
+import { TripMap } from "./TripMap";
 
 //const md = markdownit();
 
