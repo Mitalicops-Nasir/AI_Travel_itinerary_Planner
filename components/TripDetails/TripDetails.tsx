@@ -178,8 +178,8 @@ const TheTripDetails = ({
               </div>
             </div>
 
-            <div className="flex items-center gap-[9px] max-[770px]:flex-col mt-6 mb-4 justify-between">
-              <div className="flex items-center gap-2">
+            <div className="flex gap-[9px] max-[1025px]:flex-col mt-6 mb-4 justify-between">
+              <div className="flex gap-3 items-center max-[450px]:grid max-[450px]:grid-cols-4">
                 {individualTrip.aiResponse.tags.map((tags, index) => {
                   let randomNum = Math.floor(
                     Math.random() * BackGroundColors.length
@@ -192,17 +192,23 @@ const TheTripDetails = ({
                     randomNum += 1;
                   }
 
+                  if (randomNum > BackGroundColors.length) {
+                    randomNum -= 1;
+                  }
+                  if (anotherRandomNum > BackGroundColors.length) {
+                    anotherRandomNum -= 1;
+                  }
                   return (
                     <div
                       key={index}
                       className={cn(
-                        "pb-[8px] pr-[20px] pl-[20px] pt-[8px] rounded-[40px]",
-                        `bg-[${BackGroundColors[randomNum]}]`
+                        "pb-[8px] pr-[20px] pl-[20px] pt-[8px] rounded-[40px] h-fit w-fit max-[450px]:col-span-2 max-[450px]:w-full",
+                        `!bg-[${BackGroundColors[randomNum]}]`
                       )}
                       style={{ backgroundColor: BackGroundColors[randomNum] }}
                     >
                       <p
-                        className="text-[12px] font-[500]"
+                        className="text-[12px] font-[500] max-[440px]:text-[10px]"
                         style={{ color: textColor[randomNum] }}
                       >
                         {tags}
@@ -212,8 +218,8 @@ const TheTripDetails = ({
                 })}
               </div>
 
-              <div className="flex items-center max-[770px]:flex-col gap-4">
-                <div className="flex items-center gap-4 mt-3 mb-3">
+              <div className="flex items-center max-[1025px]:justify-between gap-4 m-2">
+                <div className="flex items-center gap-4 mb-1">
                   {DemoStars.slice(0, AverageRatingForTrip!).map((star) => {
                     return (
                       <div key={star.id}>
@@ -222,6 +228,7 @@ const TheTripDetails = ({
                           alt="star"
                           width={18}
                           height={18}
+                          className="w-full h-full"
                         />
                       </div>
                     );

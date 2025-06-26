@@ -8,7 +8,7 @@ export default function RootLayout({
 }>) {
   return (
     <div>
-      <Navbar className="bg-amber-[#ffff] pb-[30px] !pt-[30px]" />
+      <Navbar className="bg-amber-[#ffff] pb-[30px] !pt-[30px]" color="black"/>
       {children}
 
       <Toaster />

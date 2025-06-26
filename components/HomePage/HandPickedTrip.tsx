@@ -38,10 +38,15 @@ const HandPickedTrip = ({ theTrip }: { theTrip: TheTripInDB[] }) => {
     "#C01048",
   ];
 
-  let itemsPerPage = 3;
+  const itemsPerPage = 3;
 
   const startingIndex = (currentPage - 1) * itemsPerPage;
-  const endingIndex = currentPage * itemsPerPage;
+  let endingIndex = currentPage * itemsPerPage;
+
+  if (endingIndex - startingIndex !== 3) {
+    endingIndex = endingIndex - 1;
+  }
+
   //const totalPaginations = Math.ceil(HandPickedTrips.length / itemsPerPage);
 
   return (

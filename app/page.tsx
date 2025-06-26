@@ -30,7 +30,7 @@ export default async function Home() {
     <div>
       <section className="bg-[url('/hero-img.png')] bg-cover bg-center bg-no-repeat w-full relative h-full">
         <div className="absolute bg-[linear-gradient(to_right,_#CFF1FFCC_20%,_#CFF1FF33_55%)]  inset-0" />
-        <Navbar />
+        <Navbar color="white" />
         <Hero />
       </section>
 

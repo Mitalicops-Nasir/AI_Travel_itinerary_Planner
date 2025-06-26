@@ -7,7 +7,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
 import { MdCancel, MdMenu } from "react-icons/md";
 import { signOut } from "next-auth/react";
 
-export const Navbar = ({className}: {className?: string}) => {
+export const Navbar = ({className, color}: {className?: string, color?: string }) => {
   const [clicked, setClicked] = useState(false);
   return (
     <nav className={`flex items-center gap-6 justify-between w-full pl-[140px] pt-[50px] max-[768px]:pr-[40px] max-[768px]:pl-[40px] pr-[140px] relative ${className}`}>
@@ -28,7 +28,7 @@ export const Navbar = ({className}: {className?: string}) => {
             size={25}
             onClick={() => setClicked(!clicked)}
             className="max-[700px]:block hidden cursor-pointer"
-            color="white"
+            color={color || "white"}
           />
           <MobileNav />
         </>
@@ -36,7 +36,7 @@ export const Navbar = ({className}: {className?: string}) => {
         <MdMenu
           size={25}
           onClick={() => setClicked(!clicked)}
-          color="white"
+          color={color || "white"}
           className="max-[700px]:block hidden cursor-pointer"
         />
       )}
@@ -81,7 +81,7 @@ export const MobileNav = () => {
           </Link>
         </div>
 
-        <div className="flex items-center gap-3 p-4 bg-white rounded-[13px]">
+        <div className="flex items-center gap-3 p-4 justify-between bg-white rounded-[13px] w-full">
           <Avatar>
             <AvatarImage
               height={40}
