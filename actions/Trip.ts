@@ -27,6 +27,36 @@ export async function GetAllTrips() {
   }
 }
 
+export async function GetAllPopularTrips() {
+  try {
+    const data = await db.trip.findMany({
+      where: {
+        ratings: {
+          some: {
+            rating: {
+              gte: 4,
+            },
+          },
+        },
+      },
+      include: {
+        aiResponse: {
+          select: {
+            images: true,
+            estimatedPrice: true,
+            location: true,
+            tags: true,
+          },
+        },
+      },
+    });
+
+    return data 
+  } catch (error) {
+    console.log(error);
+  }
+}
+
 export async function getIndividualTrip(id: string) {
   try {
     const data = await db.trip.findUnique({

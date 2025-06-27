@@ -21,10 +21,12 @@ const TheTripDetails = ({
   userId,
   TheRating,
   AverageRatingForTrip,
+  ThePopularTripsData,
 }: {
   individualTrip: TheSingleTrip;
   userId: string;
   TheRating: any;
+  ThePopularTripsData: TheTripInDB[];
   AverageRatingForTrip: number | null | undefined;
 }) => {
   const [isLoading, setIsLoading] = useState(false);
@@ -366,7 +368,7 @@ const TheTripDetails = ({
         </div>
       </section>
 
-      <PopularTrips />
+      <PopularTrips theTrip={ThePopularTripsData}/>
     </>
   );
 };

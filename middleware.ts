@@ -15,7 +15,7 @@ export default auth((req) => {
   const { nextUrl } = req;
   const isLoggedIn = !!req.auth;
 
-  console.log("MIDDLEWARE HIT:", req.nextUrl.pathname);
+  //console.log("MIDDLEWARE HIT:", req.nextUrl.pathname);
 
   // ✅ Allow API route of stripe
   if (req.nextUrl.pathname === "/api/webhooks/stripe") {

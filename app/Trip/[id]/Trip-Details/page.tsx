@@ -1,4 +1,5 @@
 import {
+  GetAllPopularTrips,
   getAverageRatingForTrip,
   getIndividualTrip,
   getTripRatingForAUser,
@@ -13,12 +14,24 @@ const TripDetails = async ({ params }: any) => {
   const IndividualTrip = await getIndividualTrip(id);
   const getTheUserRatingOfTrip = await getTripRatingForAUser(id, user?.id!);
   const AverageRating = await getAverageRatingForTrip(id);
-
-  console.log(IndividualTrip);
+  const PopularTrips = await GetAllPopularTrips();
 
   if (!IndividualTrip) {
     return <div>No trip found.</div>;
   }
+
+  const PopularTripParsed = PopularTrips?.map((trip) => ({
+    ...trip,
+    aiResponse: trip.aiResponse
+      ? {
+          ...trip.aiResponse,
+          location:
+            typeof trip.aiResponse.location === "string"
+              ? JSON.parse(trip.aiResponse.location)
+              : trip.aiResponse.location,
+        }
+      : null,
+  }));
 
   // Fix aiResponse.location type
   return (
@@ -29,6 +42,7 @@ const TripDetails = async ({ params }: any) => {
         userId={user?.id!}
         TheRating={getTheUserRatingOfTrip}
         AverageRatingForTrip={AverageRating}
+        ThePopularTripsData={PopularTripParsed!}
       />
     </>
   );

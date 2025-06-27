@@ -70,7 +70,7 @@ export function ChartBarDefault({
       percent: item.percentage,
     })) || [];
 
-  console.log("chartDataSecond", chartDataSecond);
+  //console.log("chartDataSecond", chartDataSecond);
 
   const chartData = [
     { interests: "Jan", desktop: 186 },

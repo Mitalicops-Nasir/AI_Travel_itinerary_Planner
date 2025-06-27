@@ -60,7 +60,7 @@ const CreateItenaries = ({ userId }: { userId: string | undefined }) => {
         budgetEstimate: values.budgetEstimate,
       };
 
-      console.log("TheTrip", TheTrip);
+     // console.log("TheTrip", TheTrip);
 
       const MakeTripInDB = await createTrip(TheTrip, userId!);
 

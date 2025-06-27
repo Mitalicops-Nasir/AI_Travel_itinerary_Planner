@@ -69,7 +69,7 @@ const AITrips = ({ theTrip }: { theTrip: TheTripInDB[] }) => {
           View and Generate AI Travel Plans
         </p>
       </div>
-      <div className="grid grid-cols-[repeat(auto-fit,minmax(270px,1fr))] gap-[30px] max-[321px]:grid-cols-1">
+      <div className="grid grid-cols-[repeat(auto-fit,minmax(270px,1fr))] gap-[10px] max-[321px]:grid-cols-1">
         {theTrip.slice(startingIndex, endingIndex).map((trip) => {
           let randomNum = Math.floor(Math.random() * BackGroundColors.length);
           const anotherRandomNum = Math.floor(
@@ -119,10 +119,10 @@ const AITrips = ({ theTrip }: { theTrip: TheTripInDB[] }) => {
                   </p>
                 </span>
 
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-2 w-full">
                   <div
                     className={cn(
-                      "pb-[8px] pr-[14px] pl-[14px] pt-[8px] rounded-[40px]",
+                      "pb-[8px] pr-[14px] pl-[14px] pt-[8px] rounded-[40px] w-fit",
                       `bg-[${BackGroundColors[randomNum]}]`
                     )}
                     style={{ backgroundColor: BackGroundColors[randomNum] }}
@@ -137,7 +137,7 @@ const AITrips = ({ theTrip }: { theTrip: TheTripInDB[] }) => {
 
                   <div
                     className={cn(
-                      "pb-[8px] pr-[14px] pl-[14px] pt-[8px] rounded-[40px]",
+                      "pb-[8px] pr-[14px] pl-[14px] pt-[8px] rounded-[40px] w-fit",
                       `bg-[${BackGroundColors[anotherRandomNum]}]`
                     )}
                     style={{

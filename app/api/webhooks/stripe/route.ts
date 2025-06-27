@@ -39,15 +39,6 @@ export async function POST(req: any) {
       const userId = session?.metadata?.userId;
       const amount = session.amount_total; // in cents
 
-      console.log(
-        "Checkout session completed:",
-        session.id,
-        "tripId:",
-        tripId,
-        "userId",
-        userId
-      );
-
       if (tripId && userId) {
         try {
           await db.booking.create({
@@ -56,6 +47,7 @@ export async function POST(req: any) {
               tripId,
               status: "PAID",
               priceInCents: amount!,
+              stripeSessionId: session.id,
             },
           });
         } catch (error) {

@@ -110,16 +110,16 @@ const HandPickedTrip = ({ theTrip }: { theTrip: TheTripInDB[] }) => {
                   </p>
                 </span>
 
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-2 w-full">
                   <div
                     className={cn(
-                      "pb-[8px] pr-[20px] pl-[20px] pt-[8px] rounded-[40px]",
+                      "pb-[8px] pr-[20px] pl-[20px] pt-[8px] rounded-[40px] w-fit",
                       `bg-[${BackGroundColors[randomNum]}]`
                     )}
                     style={{ backgroundColor: BackGroundColors[randomNum] }}
                   >
                     <p
-                      className="text-[12px] font-[500]"
+                      className="text-[10.5px] font-[500]"
                       style={{ color: textColor[randomNum] }}
                     >
                       {trip.aiResponse?.tags[0]}
@@ -128,7 +128,7 @@ const HandPickedTrip = ({ theTrip }: { theTrip: TheTripInDB[] }) => {
 
                   <div
                     className={cn(
-                      "pb-[8px] pr-[20px] pl-[20px] pt-[8px] rounded-[40px]",
+                      "pb-[8px] pr-[20px] pl-[20px] pt-[8px] rounded-[40px] w-fit",
                       `bg-[${BackGroundColors[anotherRandomNum]}]`
                     )}
                     style={{
@@ -136,7 +136,7 @@ const HandPickedTrip = ({ theTrip }: { theTrip: TheTripInDB[] }) => {
                     }}
                   >
                     <p
-                      className="text-[12px] font-[500]"
+                      className="text-[10.5px] font-[500]"
                       style={{ color: textColor[anotherRandomNum] }}
                     >
                       {trip.aiResponse?.tags[2]}
