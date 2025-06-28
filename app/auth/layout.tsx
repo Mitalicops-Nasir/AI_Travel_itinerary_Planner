@@ -1,3 +1,4 @@
+import { Toaster } from "sonner";
 
 
 export default function RootLayout({
@@ -11,7 +12,7 @@ export default function RootLayout({
         {children}
       </main>
 
-      
+      <Toaster/>
     </div>
   );
 }

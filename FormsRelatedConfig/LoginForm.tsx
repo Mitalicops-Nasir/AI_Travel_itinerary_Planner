@@ -40,7 +40,6 @@ export const LoginForm = () => {
   const [showTwoFactor, setShowTwoFactor] = useState(false);
   //const [success, setSuccess] = useState<string | undefined>("");
 
-
   //THIS IS THE LOCAL STORAGE WAY OF SAVING IT IT ALLOWS FOR PERSISTENCE EVEN IF PAGE RELOADS
 
   // const retrievedValue = localStorage.getItem("credential");
@@ -91,22 +90,12 @@ export const LoginForm = () => {
 
       const newUser = await Login(user);
 
-      //if (newUser) {
-
-      //}
-
       if (newUser?.error) {
         form.reset();
         //  setError(newUser.error);
 
         if (newUser.error !== "NEXT_REDIRECT") {
-          toast(`User registration failed ERR: ${newUser.error}`, {
-            style: {
-              backgroundColor: "#FF0000",
-              border: "1px solid #FF0000",
-              color: "white",
-            },
-          });
+          toast.error(`User registration failed ERROR: ${newUser.error}`);
         }
       }
 
@@ -134,7 +123,6 @@ export const LoginForm = () => {
       return newUser;
     } catch (error) {
       console.log(error);
-      //setError("something went wrong");
     }
   }
 

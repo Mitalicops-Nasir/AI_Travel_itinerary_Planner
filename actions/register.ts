@@ -41,6 +41,6 @@ export const signUpUser = async (values: z.infer<typeof RegisterUser>) => {
     return { success: "User Created!", user: user };
   } catch (error) {
     console.log({ error });
-    return { error: error };
+    return { error };
   }
 };

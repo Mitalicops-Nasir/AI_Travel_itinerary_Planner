@@ -84,18 +84,13 @@ const RegisterForm = () => {
 
       if (newUser.success) {
         //setSuccess("Patient registered successfully");
-        toast("User registered successfully", {
-          style: {
-            backgroundColor: "limegreen",
-            color: "white",
-          },
-        });
+        toast.success("User registered successfully");
+
         form.reset();
         setIsLoading(false);
-
+        setFromRegister(true);
         router.push("/auth/login");
 
-        setFromRegister(true);
         //THIS MODAL USES LOCAL STROAGE FOR STATE MANAGEMENT OF GOOGLE SIGN IN AND CREDENTIAL
         // SEE LOGIN FORM TOO IF WANNA USE IT. The Modal.ts file is the one to use
 
@@ -103,13 +98,14 @@ const RegisterForm = () => {
 
         ///////////////
       }
+
+      if (newUser.error) {
+        toast.error(newUser.error as string);
+        console.log("error", newUser.error);
+        setIsLoading(false);
+      }
     } catch (error) {
-      toast(`User registration failed ERR:${error}`, {
-        style: {
-          backgroundColor: "red",
-          color: "black",
-        },
-      });
+      toast.error(`User registration failed ERR:${error}`);
 
       console.log(error);
     }
