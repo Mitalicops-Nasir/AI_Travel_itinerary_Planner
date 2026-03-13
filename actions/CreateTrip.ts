@@ -156,7 +156,9 @@ export async function GenerateAITripIternary(
         country: aiTrip.country as string,
         images: imageUrls,
         itinerary: {
+          // @ts-expect-error - complex schema causes deep type instantiation
           day: aiTrip.itinerary.map(
+            // @ts-expect-error - complex schema causes deep type instantiation
             (day: (typeof aiTrip.itinerary)[number]) => ({
               day: day.day,
               location: day.location,
@@ -173,7 +175,9 @@ export async function GenerateAITripIternary(
         bestTimeToVisit: aiTrip.bestTimeToVisit as string[],
         weatherInfo: aiTrip.weatherInfo as string[],
         location: {
-          city: aiTrip.location.city as string,
+          // @ts-expect-error - complex schema causes deep type instantiation
+          city: aiTrip.location.city as any,
+          // @ts-expect-error - complex schema causes deep type instantiation
           coordinates: aiTrip.location.coordinates as [number, number],
         },
       },
