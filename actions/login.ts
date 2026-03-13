@@ -25,7 +25,7 @@ export async function Login(user: z.infer<typeof loginSchema>) {
 
     const userByEmail = await getUserByEmail(validatedFields.data?.email!);
 
-    if (!userByEmail || !userByEmail.email || !userByEmail?.password)
+    if (userByEmail === null)
       return { error: "User not found" };
 
     if (!userByEmail.emailVerified) {
