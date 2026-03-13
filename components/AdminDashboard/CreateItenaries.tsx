@@ -50,35 +50,30 @@ const CreateItenaries = ({ userId }: { userId: string | undefined }) => {
   const onSubmit = async (values: z.infer<typeof NewTrip>) => {
     setDisabled(true);
     try {
-      const TheTrip = {
-        id: "",
-        country: values.country,
-        duration: values.duration,
-        groupType: values.groupType,
-        travelStyle: values.travelStyle,
-        interests: values.interests,
-        budgetEstimate: values.budgetEstimate,
-      };
+      // const TheTrip = {
+      //   id: "",
+      //   country: values.country,
+      //   duration: values.duration,
+      //   groupType: values.groupType,
+      //   travelStyle: values.travelStyle,
+      //   interests: values.interests,
+      //   budgetEstimate: values.budgetEstimate,
+      // };
 
-     // console.log("TheTrip", TheTrip);
+      // console.log("TheTrip", TheTrip);
 
-      const MakeTripInDB = await createTrip(TheTrip, userId!);
+      const MakeAIResponseInDB = await GenerateAITripIternary(values, userId!);
 
-      const MakeAIResponseInDB = await GenerateAITripIternary(
-        values,
-        MakeTripInDB.trip.id
-      );
-
-      if (!MakeAIResponseInDB.success) {
+      if (MakeAIResponseInDB?.success === false) {
         toast.error("Failed to generate AI Iterinary. Please try again.");
         setDisabled(false);
         return;
       }
 
-      if (MakeTripInDB.success) {
+      if (MakeAIResponseInDB?.success === true) {
         toast.success("Trip Generated successfully!");
 
-        router.push(`/Trip/${MakeTripInDB.trip.id}/Trip-Details`);
+        router.push(`/Trip/${MakeAIResponseInDB.aiTrip?.tripId}/Trip-Details`);
 
         setDisabled(false);
         return;

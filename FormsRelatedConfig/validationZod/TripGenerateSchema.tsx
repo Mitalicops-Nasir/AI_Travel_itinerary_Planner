@@ -5,7 +5,6 @@ import {
   travelStyles,
 } from "@/constants";
 import { z } from "zod";
-import { id } from "zod/dist/types/v4/locales";
 
 export const NewTrip = z.object({
   country: z.string().min(3),

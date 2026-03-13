@@ -5,9 +5,11 @@ import {
   NewTrip,
   TripGenerateSchema,
 } from "@/FormsRelatedConfig/validationZod/TripGenerateSchema";
-import { createGoogleGenerativeAI } from "@ai-sdk/google";
-import { generateObject } from "ai";
+import { google } from "@ai-sdk/google";
+import { generateText, Output } from "ai";
 import { z } from "zod";
+
+type TripGenerateOutput = z.infer<typeof TripGenerateSchema>;
 
 export async function createTrip(
   values: z.infer<typeof NewTrip>,
@@ -38,7 +40,7 @@ export async function createTrip(
 
 export async function GenerateAITripIternary(
   values: z.infer<typeof NewTrip>,
-  tripId: string,
+  userId: string,
 ) {
   try {
     const unsplashApiKey = process.env.UNSPLASH_ACCESS_KEY!;
@@ -116,61 +118,73 @@ export async function GenerateAITripIternary(
     ]
     }`;
 
-    const google = createGoogleGenerativeAI({
-      // custom settings
-      apiKey: process.env.GOOGLE_GENERATIVE_AI_API_KEY,
+    const model = google("gemini-2.5-flash");
+
+    // const { object: aiTrip } = await <Trip>({
+    //   model,
+    //   prompt,
+    //   schema: TripGenerateSchema,
+    // });
+
+    const result = await generateText({
+      model: model,
+      // @ts-expect-error - complex schema causes deep type instantiation
+      output: Output.object({ schema: TripGenerateSchema }),
+      prompt: prompt,
     });
 
-    const model = google("gemini-2.5-flash", {
-      // structuredOutputs: ,
-    });
+    const aiTrip = result.output as any as TripGenerateOutput;
 
-    const { object: aiTrip } = await generateObject<Trip>({
-      model,
-      prompt,
-      schema: TripGenerateSchema,
-    });
+    if (!aiTrip) {
+      return { success: false, error: "Failed to generate AI trip itinerary" };
+    }
+
+    const makeTripInDB = await createTrip(values, userId);
 
     const MakeAITripResponseInDB = await db.aIResponse.create({
       data: {
-        tripId: tripId,
-        title: aiTrip.name,
-        description: aiTrip.description,
-        estimatedPrice: aiTrip.estimatedPrice,
-        duration: aiTrip.duration,
-        budget: aiTrip.budget,
-        travelStyle: aiTrip.travelStyle,
-        interests: aiTrip.interests,
-        groupType: aiTrip.groupType,
-        tags: aiTrip.tags,
-        country: aiTrip.country,
+        tripId: makeTripInDB.trip.id,
+        title: aiTrip.name as string,
+        description: aiTrip.description as string,
+        estimatedPrice: aiTrip.estimatedPrice as string,
+        duration: aiTrip.duration as number,
+        budget: aiTrip.budget as string,
+        travelStyle: aiTrip.travelStyle as string,
+        interests: aiTrip.interests as string,
+        groupType: aiTrip.groupType as string,
+        tags: aiTrip.tags as string[],
+        country: aiTrip.country as string,
         images: imageUrls,
         itinerary: {
-          day: aiTrip.itinerary.map((day) => ({
-            day: day.day,
-            location: day.location,
-            gettingThere: day.gettingThere,
-            activities: day.activities.map((activity) => ({
-              time: activity.time,
-              description: activity.description,
-            })),
-          })),
+          day: aiTrip.itinerary.map(
+            (day: (typeof aiTrip.itinerary)[number]) => ({
+              day: day.day,
+              location: day.location,
+              gettingThere: day.gettingThere,
+              activities: day.activities.map(
+                (activity: (typeof day.activities)[number]) => ({
+                  time: activity.time,
+                  description: activity.description,
+                }),
+              ),
+            }),
+          ),
         },
-        bestTimeToVisit: aiTrip.bestTimeToVisit,
-        weatherInfo: aiTrip.weatherInfo,
+        bestTimeToVisit: aiTrip.bestTimeToVisit as string[],
+        weatherInfo: aiTrip.weatherInfo as string[],
         location: {
-          city: aiTrip.location.city,
-          coordinates: aiTrip.location.coordinates,
+          city: aiTrip.location.city as string,
+          coordinates: aiTrip.location.coordinates as [number, number],
         },
       },
     });
 
     return {
-      success: "AI trip itinerary generated successfully",
+      success: true,
       aiTrip: MakeAITripResponseInDB,
     };
   } catch (error) {
-    console.error("Error generating AI trip itinerary:", error);
-    throw new Error("Failed to generate AI trip itinerary");
+    console.log("Error generating AI trip itinerary:", error);
+    return { success: false, error: "Failed to generate AI trip itinerary" };
   }
 }
