@@ -11,7 +11,7 @@ import { z } from "zod";
 
 export async function createTrip(
   values: z.infer<typeof NewTrip>,
-  userId: string
+  userId: string,
 ) {
   try {
     const trip = await db.trip.create({
@@ -38,13 +38,13 @@ export async function createTrip(
 
 export async function GenerateAITripIternary(
   values: z.infer<typeof NewTrip>,
-  tripId: string
+  tripId: string,
 ) {
   try {
     const unsplashApiKey = process.env.UNSPLASH_ACCESS_KEY!;
 
     const imageResponse = await fetch(
-      `https://api.unsplash.com/search/photos?query=${values.country} ${values.interests} ${values.travelStyle}&client_id=${unsplashApiKey}`
+      `https://api.unsplash.com/search/photos?query=${values.country} ${values.interests} ${values.travelStyle}&client_id=${unsplashApiKey}`,
     );
 
     const imageUrls = (await imageResponse.json()).results
@@ -121,7 +121,7 @@ export async function GenerateAITripIternary(
       apiKey: process.env.GOOGLE_GENERATIVE_AI_API_KEY,
     });
 
-    const model = google("gemini-2.0-flash", {
+    const model = google("gemini-2.5-flash", {
       // structuredOutputs: ,
     });
 
