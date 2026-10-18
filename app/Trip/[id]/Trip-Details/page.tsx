@@ -6,43 +6,36 @@ import {
 } from "@/actions/Trip";
 import TheTripDetails from "@/components/TripDetails/TripDetails";
 import { currentUser } from "@/lib/auth";
+import { notFound } from "next/navigation";
 import React from "react";
 
-const TripDetails = async ({ params }: any) => {
+const TripDetails = async ({ params }: { params: Promise<{ id: string }> }) => {
   const { id } = await params;
-  const user = await currentUser();
-  const IndividualTrip = await getIndividualTrip(id);
-  const getTheUserRatingOfTrip = await getTripRatingForAUser(id, user?.id!);
-  const AverageRating = await getAverageRatingForTrip(id);
-  const PopularTrips = await GetAllPopularTrips();
 
-  if (!IndividualTrip) {
-    return <div>No trip found.</div>;
+  const [user, individualTrip] = await Promise.all([
+    currentUser(),
+    getIndividualTrip(id),
+  ]);
+
+  if (!individualTrip) {
+    notFound();
   }
 
-  const PopularTripParsed = PopularTrips?.map((trip) => ({
-    ...trip,
-    aiResponse: trip.aiResponse
-      ? {
-          ...trip.aiResponse,
-          location:
-            typeof trip.aiResponse.location === "string"
-              ? JSON.parse(trip.aiResponse.location)
-              : trip.aiResponse.location,
-        }
-      : null,
-  }));
+  const [getTheUserRatingOfTrip, AverageRating, PopularTrips] =
+    await Promise.all([
+      getTripRatingForAUser(id, user?.id),
+      getAverageRatingForTrip(id),
+      GetAllPopularTrips(),
+    ]);
 
-  // Fix aiResponse.location type
   return (
     <>
       <TheTripDetails
-        //@ts-expect-error Type  Fix aiResponse.location type
-        individualTrip={IndividualTrip}
-        userId={user?.id!}
+        individualTrip={individualTrip}
+        userId={user?.id}
         TheRating={getTheUserRatingOfTrip}
         AverageRatingForTrip={AverageRating}
-        ThePopularTripsData={PopularTripParsed!}
+        ThePopularTripsData={PopularTrips}
       />
     </>
   );

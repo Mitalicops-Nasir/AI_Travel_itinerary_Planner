@@ -11,7 +11,7 @@ import { useEffect, useState } from "react";
 
 import { RiLockPasswordFill } from "react-icons/ri";
 
-import { useRouter, useSearchParams } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 
 import CustomForm from "./CustomForm";
 import { loginSchema } from "./validationZod/loginUser";
@@ -25,45 +25,42 @@ import Link from "next/link";
 import { signIn } from "next-auth/react";
 import { DEFAULT_LOGIN_REDIRECT } from "@/routes";
 import { Login } from "@/actions/login";
-import { TheModalSwitch } from "./validationZod/Modal";
-import { useAuthFlowStore } from "./useAuthFlowStore";
+
+function isRedirectError(error: unknown) {
+  return (
+    error instanceof Error && error.message.includes("NEXT_REDIRECT")
+  );
+}
 
 export const LoginForm = () => {
   const searchParams = useSearchParams();
+  const callbackUrl = searchParams.get("callbackUrl");
+
   const urlError =
     searchParams.get("error") === "OAuthAccountNotLinked"
       ? "Email already in use with a different provider!"
       : "";
 
   const [isLoading, setIsLoading] = useState(false);
-  //const [error, setError] = useState<string | undefined>("");
-  const [showTwoFactor, setShowTwoFactor] = useState(false);
-  //const [success, setSuccess] = useState<string | undefined>("");
 
-  //THIS IS THE LOCAL STORAGE WAY OF SAVING IT IT ALLOWS FOR PERSISTENCE EVEN IF PAGE RELOADS
-
-  // const retrievedValue = localStorage.getItem("credential");
-  //let modalSwitch = false;
-  //if (retrievedValue === "undefined") {
-  //modalSwitch = false;
-  //} else {
-  // modalSwitch = true;
-  //}
-
-  //////////////////////////////////
-
-  const { fromRegister, setFromRegister } = useAuthFlowStore();
-
-  const [credential, setCredential] = useState(false);
+  // RegisterForm links here with ?credentials=1 so the credentials panel
+  // is already visible on the first render.
+  const [credential, setCredential] = useState(
+    searchParams.get("credentials") === "1"
+  );
 
   useEffect(() => {
-    if (fromRegister) {
-      setCredential(true); // existing state toggle
-      setFromRegister(false); // reset for next time
+    if (urlError) {
+      toast.error(urlError, {
+        style: {
+          backgroundColor: "#FF0000",
+          border: "1px solid #FF0000",
+          color: "white",
+        },
+      });
     }
-  }, [fromRegister]);
+  }, [urlError]);
 
-  // 1. Define your form.
   const form = useForm<z.infer<typeof loginSchema>>({
     resolver: zodResolver(loginSchema),
     defaultValues: {
@@ -72,68 +69,39 @@ export const LoginForm = () => {
     },
   });
 
+  const redirectTarget = callbackUrl ?? DEFAULT_LOGIN_REDIRECT;
+
   const handleClick = () => {
     signIn("google", {
-      callbackUrl: DEFAULT_LOGIN_REDIRECT,
+      redirectTo: redirectTarget,
     });
   };
 
-  // 2. Define a submit handler.
   async function onSubmit(values: z.infer<typeof loginSchema>) {
     setIsLoading(true);
 
     try {
-      const user = {
-        email: values.email,
-        password: values.password,
-      };
-
-      const newUser = await Login(user);
+      const newUser = await Login(values, callbackUrl);
 
       if (newUser?.error) {
-        form.reset();
-        //  setError(newUser.error);
-
-        if (newUser.error !== "NEXT_REDIRECT") {
-          toast.error(`User registration failed ERROR: ${newUser.error}`);
-        }
+        toast.error(newUser.error);
       }
 
       if (newUser?.success) {
+        toast.success(newUser.success);
         form.reset();
-        //setSuccess(newUser.success);
-
-        //const role = newUser.role;
-
-        //        if (role === "Admin") {
-        //        router.push("/admin");
-        //    } else if (role === "Doctor") {
-        //    router.push("/dashboard");
-        // } else if (role === "Patient") {
-        // router.push("/patient-admin");
-        //}
-      }
-
-      if (newUser?.twoFactor) {
-        setShowTwoFactor(true);
       }
 
       setIsLoading(false);
-
-      return newUser;
     } catch (error) {
-      console.log(error);
-    }
-  }
+      // A thrown NEXT_REDIRECT is how Auth.js reports a successful login
+      // redirect; the router handles it, so swallow it here.
+      if (isRedirectError(error)) return;
 
-  if (urlError) {
-    toast(urlError, {
-      style: {
-        backgroundColor: "#FF0000",
-        border: "1px solid #FF0000",
-        color: "white",
-      },
-    });
+      console.log(error);
+      toast.error("Something went wrong. Please try again.");
+      setIsLoading(false);
+    }
   }
 
   return (
@@ -165,39 +133,24 @@ export const LoginForm = () => {
                     Tourvisto
                   </h1>
                 </div>
-                {showTwoFactor && (
-                  <CustomForm
-                    fieldType={FormFieldType.INPUT}
-                    control={form.control}
-                    name="code"
-                    label="Code"
-                    placeholder="Enter Your 2FA Code"
-                    iconSrc={<MdOutlineAlternateEmail color="white" />}
-                    iconAlt="code"
-                  />
-                )}
-                {!showTwoFactor && (
-                  <>
-                    <CustomForm
-                      fieldType={FormFieldType.INPUT}
-                      control={form.control}
-                      name="email"
-                      label="Email"
-                      placeholder="johndoe@example.com"
-                      iconSrc={<MdOutlineAlternateEmail color="white" />}
-                      iconAlt="email"
-                    />
-                    <CustomForm
-                      fieldType={FormFieldType.PASSWORD}
-                      control={form.control}
-                      name="password"
-                      label="Password"
-                      placeholder="********"
-                      iconSrc={<RiLockPasswordFill color="white" />}
-                      iconAlt="password"
-                    />
-                  </>
-                )}
+                <CustomForm
+                  fieldType={FormFieldType.INPUT}
+                  control={form.control}
+                  name="email"
+                  label="Email"
+                  placeholder="johndoe@example.com"
+                  iconSrc={<MdOutlineAlternateEmail color="white" />}
+                  iconAlt="email"
+                />
+                <CustomForm
+                  fieldType={FormFieldType.PASSWORD}
+                  control={form.control}
+                  name="password"
+                  label="Password"
+                  placeholder="********"
+                  iconSrc={<RiLockPasswordFill color="white" />}
+                  iconAlt="password"
+                />
 
                 <div className="flex flex-col items-center">
                   <SubmitButton
@@ -215,6 +168,14 @@ export const LoginForm = () => {
                       className="rounded-[8px] mt-[5px]  cursor-pointer"
                     >
                       Sign In With Google
+                    </Button>
+
+                    <Button
+                      variant="link"
+                      asChild
+                      className="rounded-[8px] mt-[5px]  cursor-pointer"
+                    >
+                      <Link href="/auth/reset">Forgot Password?</Link>
                     </Button>
 
                     <Button

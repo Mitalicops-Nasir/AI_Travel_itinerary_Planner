@@ -1,52 +1,54 @@
 "use client";
 
-import React, { useState } from "react";
+import React from "react";
 import { Button } from "../ui/button";
 import Link from "next/link";
 import Image from "next/image";
 import { RiDeleteBin6Line } from "react-icons/ri";
 import { ExtendedUser } from "@/next-auth";
-import { FaArrowLeft, FaArrowRight } from "react-icons/fa";
-import { TotalPaginations } from "@/constants";
 import { cn } from "@/lib/utils";
 import { deleteUser } from "@/actions/user.actions";
 import { toast } from "sonner";
+import { useRouter } from "next/navigation";
+import { usePagination } from "@/hooks/usePagination";
+import Pagination from "@/components/Pagination";
 
-export type TheUsersInfo =
-  | {
-      users: {
-        id: string;
-        name: string;
-        email: string;
-        createdAt: Date | null;
-        role: "ADMIN" | "USER";
-        image: string | null;
+export type UserTableRow = {
+  id: string;
+  name: string;
+  email: string;
+  createdAt: Date | null;
+  role: "ADMIN" | "USER";
+  image: string | null;
+  _count: {
+    trip: number;
+  };
+};
 
-        _count: {
-          trip: number;
-        };
-      }[];
-    }
-  | null
-  | undefined;
+const ITEMS_PER_PAGE = 8;
 
 const AllUser = ({
   users,
   CurrentUser,
 }: {
-  users: TheUsersInfo;
+  users: UserTableRow[];
   CurrentUser: ExtendedUser;
 }) => {
-  const [currentPage, setPageNum] = useState(1);
-
-  let itemsPerPage = 8;
-
-  const startingIndex = (currentPage - 1) * itemsPerPage;
-  const endingIndex = currentPage * itemsPerPage;
+  const router = useRouter();
+  const { page, totalPages, pageItems, goToPage } = usePagination(
+    users,
+    ITEMS_PER_PAGE
+  );
+  const isAdmin = CurrentUser.role === "ADMIN";
 
   const handleDelete = async (id: string) => {
     try {
       const deleteTheUser = await deleteUser(id);
+
+      if (deleteTheUser?.error) {
+        toast.error(deleteTheUser.error);
+        return;
+      }
 
       toast("User Deleted Sucessfully", {
         style: {
@@ -55,7 +57,7 @@ const AllUser = ({
         },
       });
 
-      return deleteTheUser?.success;
+      router.refresh();
     } catch (error) {
       toast("Failed to delete user", {
         style: {
@@ -78,14 +80,14 @@ const AllUser = ({
             className="pt-[12px] pr-[16px] pb-[12px] pl-[16px] w-[233px] h-[44px] max-[500px]:w-fit cursor-pointer bg-[#256FF1]"
             asChild
           >
-            <Link href="/create-trip" className="flex items-center gap-2">
+            <Link href="/Create-Trips" className="flex items-center gap-2">
               <Image
                 src="/assets/icons/plus.svg"
                 width={20}
                 height={20}
                 alt=""
               />
-              <p>Add New User</p>
+              <p>Create a Trip</p>
             </Link>
           </Button>
         </div>
@@ -115,13 +117,13 @@ const AllUser = ({
                 STATUS
               </th>
 
-              {CurrentUser?.role === "ADMIN" && (
+              {isAdmin && (
                 <th className="pt-[18px] text-left  pb-[18px] pl-[24px] pr-[24px] rounded-tl-[10px] rounded-tr-[10px]"></th>
               )}
             </tr>
           </thead>
           <tbody>
-            {users?.users.slice(startingIndex, endingIndex).map((user) => (
+            {pageItems.map((user) => (
               <tr key={user.id} className="bg-[#F9FBFC]">
                 <td className="pt-[18px] pb-[18px] pl-[24px] pr-[24px] align-top border-t-2 border-b-2 border-[#EEF9FF]">
                   <div className="flex items-center gap-[12px] max-[500px]:flex-col max-[500px]:text-center">
@@ -156,27 +158,24 @@ const AllUser = ({
 
                 <td className="pt-[18px] pb-[18px] pl-[24px] pr-[24px] border-t-2 border-b-2 border-[#EEF9FF]">
                   <span
-                    className={`text-[14px] font-medium
-              pt-[2px] pb-[2px] pr-[8px] pl-[8px] rounded-[16px] 
-              ${
-                user?.role === "ADMIN"
-                  ? "bg-[#F2F4F7] text-[#344054]"
-                  : user?.role === "USER"
-                    ? "bg-[#ECFDF3] text-[#027A48]"
-                    : "bg-[#ECFDF3] text-[#027A48]"
-              } `}
+                    className={cn(
+                      "text-[14px] font-medium pt-[2px] pb-[2px] pr-[8px] pl-[8px] rounded-[16px]",
+                      user.role === "ADMIN"
+                        ? "bg-[#F2F4F7] text-[#344054]"
+                        : "bg-[#ECFDF3] text-[#027A48]"
+                    )}
                   >
-                    {user?.role}
+                    {user.role}
                   </span>
                 </td>
 
-                {CurrentUser?.role === "ADMIN" && (
+                {isAdmin && (
                   <td className="pt-[18px] pb-[18px] pl-[24px] pr-[24px] border-t-2 border-b-2 border-[#EEF9FF]">
                     <RiDeleteBin6Line
                       size={20}
                       color="red"
                       className="cursor-pointer"
-                      onClick={() => handleDelete(user.id!)}
+                      onClick={() => handleDelete(user.id)}
                     />
                   </td>
                 )}
@@ -186,47 +185,12 @@ const AllUser = ({
         </table>
       </div>
 
-      <div className="pt-[16px] pb-[16px] pr-[22px] pl-[22px] rounded-bl-[13px] rounded-br-[13px] border-1 bg-[#fff] border-[#EAECF0] flex items-center justify-between">
-        <div
-          className="pl-[14px] pr-[14px] pt-[8px] pb-[8px] cursor-pointer bg-[#FFFFFF] shadow-2xl rounded-[8px] border border-solid border-[#EAECF0]"
-          onClick={() => setPageNum(currentPage - 1)}
-        >
-          <span className="flex gap-2 items-center">
-            <FaArrowLeft size={14} />
-            <p className="text-[#2E2C48] text-[14px] font-[500]">Previous</p>
-          </span>
-        </div>
-
-        <div className="flex items-center gap-4 max-[580px]:hidden">
-          {TotalPaginations.map((item) => (
-            <div
-              key={item.value}
-              className={cn(
-                "pl-[14px] pr-[14px] pt-[8px] pb-[8px] cursor-pointer shadow-2xl rounded-[8px] border border-solid border-[#EAECF0]",
-                `${
-                  currentPage === item.value
-                    ? "bg-blue-500 text-[#fff]"
-                    : "bg-transparent"
-                }`
-              )}
-              onClick={() => setPageNum(item.value)}
-            >
-              <span>{item.valueInString}</span>
-            </div>
-          ))}
-        </div>
-
-        <div
-          className="pl-[14px] pr-[14px] pt-[8px] pb-[8px] cursor-pointer bg-[#FFFFFF] shadow-2xl rounded-[8px] border border-solid border-[#EAECF0]"
-          onClick={() => setPageNum(currentPage + 1)}
-        >
-          <span className="flex gap-2 items-center">
-            <p className="text-[#2E2C48] text-[14px] font-[500]">Next</p>
-
-            <FaArrowRight size={14} />
-          </span>
-        </div>
-      </div>
+      <Pagination
+        page={page}
+        totalPages={totalPages}
+        onPageChange={goToPage}
+        className="pt-[16px] pb-[16px] pr-[22px] pl-[22px] rounded-bl-[13px] rounded-br-[13px] border-1 bg-[#fff] border-[#EAECF0]"
+      />
     </section>
   );
 };

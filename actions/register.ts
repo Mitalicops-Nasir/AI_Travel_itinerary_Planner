@@ -14,33 +14,33 @@ export const signUpUser = async (values: z.infer<typeof RegisterUser>) => {
       return { error: "Invalid fields!" };
     }
 
-    const { email, password, name, phone } = validatedFields.data;
-    const hashedPassword = await bcrypt.hash(password, 10);
+    const { name, phone, password } = validatedFields.data;
+    const email = validatedFields.data.email.toLowerCase();
 
     const existingUser = await getUserByEmail(email);
 
     if (existingUser) {
       return { error: "Email already in use!" };
     }
-    const user = await db.user.create({
+
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    await db.user.create({
       data: {
         name,
         email,
         phone,
         password: hashedPassword,
-        emailVerified: new Date().toISOString(), //remove this if want to put verification feature of email
+        // New accounts are auto-verified.
+        // Swap this for `generateVerificationToken` + `sendVerificationEmail`
+        // if email verification is enforced later.
+        emailVerified: new Date(),
       },
     });
 
-    //const verificationToken = await generateVerificationToken(email);
-    //await sendVerificationEmail(
-    //verificationToken.email,
-    //verificationToken.token
-    //);
-
-    return { success: "User Created!", user: user };
+    return { success: "User Created!" };
   } catch (error) {
     console.log({ error });
-    return { error };
+    return { error: "Something went wrong. Please try again." };
   }
 };

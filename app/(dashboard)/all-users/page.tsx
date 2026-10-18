@@ -1,4 +1,4 @@
-import { deleteUser, getAllUsers } from "@/actions/user.actions";
+import { getAllUsers } from "@/actions/user.actions";
 import AllUser from "@/components/AdminDashboard/AllUserTable";
 import { currentUser } from "@/lib/auth";
 import React from "react";
@@ -6,12 +6,18 @@ import React from "react";
 export const dynamic = "force-dynamic";
 
 const page = async () => {
-  const ManyUsers = await getAllUsers();
-  const TheCurrentUser = await currentUser();
+  const [ManyUsers, TheCurrentUser] = await Promise.all([
+    getAllUsers(),
+    currentUser(),
+  ]);
+
+  if (!TheCurrentUser) {
+    return <div>Please log in to view this page.</div>;
+  }
 
   return (
     <div className="w-full">
-      <AllUser users={ManyUsers} CurrentUser={TheCurrentUser!} />
+      <AllUser users={ManyUsers} CurrentUser={TheCurrentUser} />
     </div>
   );
 };

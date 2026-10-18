@@ -1,33 +1,41 @@
 "use server";
 
-import { RatingSchema } from "@/components/RatingForm";
 import { db } from "@/data/db";
-import { calculateTrendPercentage } from "@/lib/utils";
+import { requireUser } from "@/lib/guards";
+import { buildMonthlyTrend } from "@/lib/monthly-trend";
+import {
+  toTripCard,
+  toTripDetails,
+  type TripCardView,
+  type TripDetailsView,
+} from "@/lib/trip-view";
 import { revalidatePath } from "next/cache";
-import { z } from "zod";
 
-export async function GetAllTrips() {
+const TRIP_CARD_SELECT = {
+  aiResponse: {
+    select: {
+      images: true,
+      estimatedPrice: true,
+      location: true,
+      tags: true,
+    },
+  },
+};
+
+export async function GetAllTrips(): Promise<TripCardView[]> {
   try {
     const data = await db.trip.findMany({
-      include: {
-        aiResponse: {
-          select: {
-            images: true,
-            estimatedPrice: true,
-            location: true,
-            tags: true,
-          },
-        },
-      },
+      include: TRIP_CARD_SELECT,
     });
 
-    return data;
+    return data.map(toTripCard);
   } catch (error) {
     console.log(error);
+    return [];
   }
 }
 
-export async function GetAllPopularTrips() {
+export async function GetAllPopularTrips(): Promise<TripCardView[]> {
   try {
     const data = await db.trip.findMany({
       where: {
@@ -39,25 +47,19 @@ export async function GetAllPopularTrips() {
           },
         },
       },
-      include: {
-        aiResponse: {
-          select: {
-            images: true,
-            estimatedPrice: true,
-            location: true,
-            tags: true,
-          },
-        },
-      },
+      include: TRIP_CARD_SELECT,
     });
 
-    return data 
+    return data.map(toTripCard);
   } catch (error) {
     console.log(error);
+    return [];
   }
 }
 
-export async function getIndividualTrip(id: string) {
+export async function getIndividualTrip(
+  id: string
+): Promise<TripDetailsView | null> {
   try {
     const data = await db.trip.findUnique({
       where: {
@@ -68,22 +70,38 @@ export async function getIndividualTrip(id: string) {
       },
     });
 
-    return data;
+    return data ? toTripDetails(data) : null;
   } catch (error) {
     console.log(error);
+    return null;
   }
 }
 
-export async function setTripRating(
-  TripID: string,
-  rating: number,
-  userId: string
-) {
+export async function setTripRating(TripID: string, rating: number) {
   try {
-    const data = await db.tripRating.create({
-      data: {
+    const { user, error: authError } = await requireUser("Login to rate a trip");
+
+    if (!user) {
+      return { error: authError };
+    }
+
+    if (!Number.isInteger(rating) || rating < 1 || rating > 5) {
+      return { error: "Rating must be between 1 and 5" };
+    }
+
+    const data = await db.tripRating.upsert({
+      where: {
+        userId_tripId: {
+          userId: user.id,
+          tripId: TripID,
+        },
+      },
+      update: {
+        rating: rating,
+      },
+      create: {
         tripId: TripID,
-        userId: userId,
+        userId: user.id,
         rating: rating,
       },
     });
@@ -96,11 +114,16 @@ export async function setTripRating(
     };
   } catch (error) {
     console.log(error);
+    return { error: "Could not save your rating" };
   }
 }
 
-export async function getTripRatingForAUser(TripID: string, userID: string) {
+export async function getTripRatingForAUser(TripID: string, userID?: string) {
   try {
+    if (!userID) {
+      return { UserRatingOfATrip: null };
+    }
+
     const UserRatingOfATrip = await db.tripRating.findFirst({
       where: {
         userId: userID,
@@ -117,6 +140,7 @@ export async function getTripRatingForAUser(TripID: string, userID: string) {
     };
   } catch (error) {
     console.log(error);
+    return { UserRatingOfATrip: null };
   }
 }
 
@@ -161,7 +185,8 @@ export async function TripTrends() {
     const PercentageTrends = TrendTrips.map((trend) => {
       const totalTrips = data.length;
       const count = trend._count._all;
-      const percentage = ((count / totalTrips) * 100).toFixed(2);
+      const percentage =
+        totalTrips > 0 ? ((count / totalTrips) * 100).toFixed(2) : "0";
       return {
         interest: trend.interests,
         count: count,
@@ -178,50 +203,20 @@ export async function TripTrends() {
 export async function getTotalTripGrowthPerMonth() {
   const currentYear = new Date().getFullYear();
 
-  const trip = await db.trip.groupBy({
-    by: ["createdAt"],
-    _count: true,
-    where: {
-      createdAt: {
-        gte: new Date(`${currentYear}-01-01`),
-        lte: new Date(`${currentYear}-12-31`),
+  try {
+    const trips = await db.trip.findMany({
+      select: { createdAt: true },
+      where: {
+        createdAt: {
+          gte: new Date(`${currentYear}-01-01`),
+          lte: new Date(`${currentYear}-12-31`),
+        },
       },
-    },
-  });
+    });
 
-  // Group by month manually
-  const monthlyCounts = Array.from({ length: 12 }, (_, i) => {
-    // 'i' represents the month index (0 = Jan, 11 = Dec)
-
-    const month = i;
-
-    // Count how many trips were created in this month
-    const count = trip.filter(
-      (u) => new Date(u.createdAt!).getMonth() === month
-    ).length;
-
-    // Return an object with:
-    // - the month's short name (e.g., "Jan", "Feb")
-    // - the number of trips in that month
-    return {
-      month: new Date(2024, month).toLocaleString("default", {
-        month: "short",
-      }),
-      count,
-    };
-  });
-
-  // 3. Get last 2 months' counts
-  const currentMonth = new Date().getMonth();
-  const thisMonthCount = monthlyCounts[currentMonth]?.count || 0;
-  const lastMonthCount = monthlyCounts[currentMonth - 1]?.count || 0;
-
-  // 4. Calculate trend using your function
-  const trend = calculateTrendPercentage(thisMonthCount, lastMonthCount);
-
-  // 5. Return both separately
-  return {
-    monthlyCounts: monthlyCounts,
-    trend,
-  };
+    return buildMonthlyTrend(trips.map((trip) => trip.createdAt));
+  } catch (error) {
+    console.log(error);
+    return buildMonthlyTrend([]);
+  }
 }

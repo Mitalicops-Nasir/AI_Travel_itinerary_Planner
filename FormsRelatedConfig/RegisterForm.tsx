@@ -2,12 +2,11 @@
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import Image from "next/image";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { Form } from "@/components/ui/form";
 
-import "react-datepicker/dist/react-datepicker.css";
 import "react-phone-number-input/style.css";
 
 import { FaRegUserCircle } from "react-icons/fa";
@@ -22,92 +21,44 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { SubmitButton } from "@/components/SubmitButton";
 import { FormFieldType } from "@/constants";
-import { signIn } from "@/auth";
-import { DEFAULT_LOGIN_REDIRECT } from "@/routes";
 import { signUpUser } from "@/actions/register";
 import { useRouter } from "next/navigation";
-import { TheModalSwitch } from "./validationZod/Modal";
-import { useAuthFlowStore } from "./useAuthFlowStore";
 
 const RegisterForm = () => {
   const [isLoading, setIsLoading] = useState(false);
-  //const [error, setError] = useState<string | undefined>("");
-  //const [success, setSuccess] = useState<string | undefined>("");
-  //const [imageUrl, setImageUrl] = useState<any>();
   const router = useRouter();
-
-  const { setFromRegister } = useAuthFlowStore();
 
   const form = useForm<z.infer<typeof RegisterUser>>({
     resolver: zodResolver(RegisterUser),
     defaultValues: {
-      ...RegisterUser.default,
+      name: "",
+      email: "",
+      password: "",
+      phone: "",
     },
   });
-
-  //useEffect(() => {
-  //if (imageUrl?.secure_url) {
-  //form.setValue("identificationDocumentUrl", imageUrl?.secure_url);
-  //}
-  //}, [imageUrl, form]);
 
   const onSubmit = async (values: z.infer<typeof RegisterUser>) => {
     setIsLoading(true);
 
-    // Store file info in form data as
-    //let formData;
-    //if (
-    //values.identificationDocument &&
-    //values.identificationDocument?.length > 0
-    //) {
-    //const blobFile = new Blob([values.identificationDocument[0]], {
-    //type: values.identificationDocument[0].type,
-    //});
-
-    //formData = new FormData();
-    //formData.append("blobFile", blobFile);
-    //formData.append("fileName", values.identificationDocument[0].name);
-    //}
-
-    // Store file info in form data as
-
     try {
-      const user = {
-        id: "",
-        name: values.name,
-        email: values.email,
-        phone: values.phone,
-        password: values.password,
-      };
-
-      const newUser = await signUpUser(user);
+      const newUser = await signUpUser(values);
 
       if (newUser.success) {
-        //setSuccess("Patient registered successfully");
         toast.success("User registered successfully");
 
         form.reset();
-        setIsLoading(false);
-        setFromRegister(true);
-        router.push("/auth/login");
-
-        //THIS MODAL USES LOCAL STROAGE FOR STATE MANAGEMENT OF GOOGLE SIGN IN AND CREDENTIAL
-        // SEE LOGIN FORM TOO IF WANNA USE IT. The Modal.ts file is the one to use
-
-        //TheModalSwitch(true);
-
-        ///////////////
+        router.push("/auth/login?credentials=1");
       }
 
       if (newUser.error) {
-        toast.error(newUser.error as string);
-        console.log("error", newUser.error);
-        setIsLoading(false);
+        toast.error(newUser.error);
       }
     } catch (error) {
       toast.error(`User registration failed ERR:${error}`);
-
       console.log(error);
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -154,7 +105,7 @@ const RegisterForm = () => {
                 control={form.control}
                 name="email"
                 label="Email"
-                placeholder="johndoe@jsmastery.pro"
+                placeholder="johndoe@example.com"
                 iconSrc={<MdOutlineAlternateEmail color="white" />}
                 iconAlt="email"
               />
@@ -191,7 +142,7 @@ const RegisterForm = () => {
                   asChild
                   className="rounded-[8px] mt-[5px] cursor-pointer"
                 >
-                  <Link href="/auth/login">Sign In with Google</Link>
+                  <Link href="/auth/login">Already have an account? Sign In</Link>
                 </Button>
               </div>
             </div>

@@ -1,4 +1,9 @@
-import { Control } from "react-hook-form";
+import {
+  Control,
+  ControllerRenderProps,
+  FieldPath,
+  FieldValues,
+} from "react-hook-form";
 
 import "react-phone-number-input/style.css";
 import PhoneInput from "react-phone-number-input";
@@ -10,7 +15,7 @@ import "react-datepicker/dist/react-datepicker.css";
 
 import { FormFieldType } from "@/constants";
 import { FaCalendarAlt } from "react-icons/fa";
-import { JSX, useState } from "react";
+import { JSX } from "react";
 import {
   FormControl,
   FormField,
@@ -28,10 +33,13 @@ import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 
-interface CustomProps {
-  control: Control<any>;
+interface CustomProps<
+  TFieldValues extends FieldValues = FieldValues,
+  TName extends FieldPath<TFieldValues> = FieldPath<TFieldValues>,
+> {
+  control: Control<TFieldValues>;
   fieldType: FormFieldType;
-  name: string;
+  name: TName;
   label?: string;
   placeholder?: string;
   iconSrc?: JSX.Element;
@@ -43,16 +51,21 @@ interface CustomProps {
   dateFormat?: string;
   showTimeSelect?: boolean;
   children?: React.ReactNode;
-  renderSkeleton?: (field: any) => React.ReactNode;
+  renderSkeleton?: (
+    field: ControllerRenderProps<TFieldValues, TName>
+  ) => React.ReactNode;
 }
 
-const RenderField = ({
+const RenderField = <
+  TFieldValues extends FieldValues,
+  TName extends FieldPath<TFieldValues>,
+>({
   field,
   props,
   className,
 }: {
-  field: any;
-  props: CustomProps;
+  field: ControllerRenderProps<TFieldValues, TName>;
+  props: CustomProps<TFieldValues, TName>;
   className?: string;
 }) => {
   switch (props.fieldType) {
@@ -200,7 +213,12 @@ const RenderField = ({
   }
 };
 
-const CustomFormForTrip = (props: CustomProps) => {
+const CustomFormForTrip = <
+  TFieldValues extends FieldValues = FieldValues,
+  TName extends FieldPath<TFieldValues> = FieldPath<TFieldValues>,
+>(
+  props: CustomProps<TFieldValues, TName>
+) => {
   const { control, name, label, className } = props;
   return (
     <FormField

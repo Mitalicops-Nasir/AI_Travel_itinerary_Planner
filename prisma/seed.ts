@@ -1,8 +1,5 @@
-
-
-
-const { PrismaClient } = require("@prisma/client");
-const bcryptjs = require("bcryptjs");
+import { PrismaClient } from "@prisma/client";
+import bcryptjs from "bcryptjs";
 
 const db = new PrismaClient();
 
@@ -90,28 +87,46 @@ async function main() {
     },
   ];
 
-  for (const user of users) {
-    const hashedPassword = await bcryptjs.hash("mockpassword", 10);
+  const hashedPassword = await bcryptjs.hash("mockpassword", 10);
 
-    await db.user.create({
-      data: {
+  for (const user of users) {
+    await db.user.upsert({
+      where: { email: user.email },
+      update: {},
+      create: {
         name: user.name,
         email: user.email,
         phone: user.phone,
         password: hashedPassword,
-        emailVerified: new Date().toISOString(),
+        emailVerified: new Date(),
       },
     });
   }
+
+  // Admin account for testing the admin-only actions.
+  // Email: admin@example.com — Password: password123
+  const adminPassword = await bcryptjs.hash("password123", 10);
+
+  await db.user.upsert({
+    where: { email: "admin@example.com" },
+    update: { role: "ADMIN" },
+    create: {
+      name: "Admin",
+      email: "admin@example.com",
+      password: adminPassword,
+      role: "ADMIN",
+      emailVerified: new Date(),
+    },
+  });
 }
 
 main()
   .then(() => {
-    console.log("✅ Database seeded!");
+    console.log("Database seeded!");
     db.$disconnect();
   })
   .catch((error) => {
-    console.error("❌ Seed error:", error);
+    console.error("Seed error:", error);
     db.$disconnect();
     process.exit(1);
   });

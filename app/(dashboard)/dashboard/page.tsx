@@ -14,24 +14,30 @@ import { ChartBarDefault } from "@/components/Charts/BarCharts";
 import React from "react";
 
 const page = async () => {
-  const TheTripTrends = await TripTrends();
-  const UserGrowthPerMonth = await getUserGrowthPerMonth();
-  const TotalTripGrowthPerMonth = await getTotalTripGrowthPerMonth();
-  const ActiveUserTodayVSLastMonthSameDay = await getActiveUserToday();
+  const [
+    TheTripTrends,
+    UserGrowthPerMonth,
+    TotalTripGrowthPerMonth,
+    ActiveUserTodayVSLastMonthSameDay,
+    LatestUsers,
+  ] = await Promise.all([
+    TripTrends(),
+    getUserGrowthPerMonth(),
+    getTotalTripGrowthPerMonth(),
+    getActiveUserToday(),
+    getAllUsers(),
+  ]);
 
-  const LatestUsers = await getAllUsers();
   return (
     <div className="w-full p-[2%]">
       <ChartArea
         ThePerMonthComparisonUser={UserGrowthPerMonth}
         ThePerMonthComparisonTrip={TotalTripGrowthPerMonth}
         ThePerMontActiveUserTodayCompare={ActiveUserTodayVSLastMonthSameDay}
-
-        
-        TotalUsersTrendStat={UserGrowthPerMonth.trend.trend}
-        TotalTripsTrendStat={TotalTripGrowthPerMonth.trend.trend}
+        TotalUsersTrendStat={UserGrowthPerMonth?.trend?.trend}
+        TotalTripsTrendStat={TotalTripGrowthPerMonth?.trend?.trend}
         TotalActiveUserTrendStat={
-          ActiveUserTodayVSLastMonthSameDay?.trend.trend
+          ActiveUserTodayVSLastMonthSameDay?.trend?.trend
         }
       />
 

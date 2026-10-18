@@ -5,20 +5,24 @@ import React from "react";
 import { Button } from "./ui/button";
 import Link from "next/link";
 import ReactConfetti from "react-confetti";
+import { useWindowSize } from "react-use";
 
 const SuccessPageChckout = ({ TripId }: { TripId: string }) => {
-  const { width, height } = window.screen;
+  const { width, height } = useWindowSize({ initialWidth: 0, initialHeight: 0 });
+
   return (
     <section className="bg-[#F9FBFC] h-screen p-[5%] w-full overflow-x-hidden">
-      <ReactConfetti
-        width={width}
-        height={height}
-        recycle={false}
-        numberOfPieces={200}
-        gravity={0.95}
-        run={true}
-        colors={["#ff0", "#ff7f00", "#ff0044", "#4c94f4", "#f4f4f4"]}
-      />
+      {width > 0 && height > 0 && (
+        <ReactConfetti
+          width={width}
+          height={height}
+          recycle={false}
+          numberOfPieces={200}
+          gravity={0.95}
+          run={true}
+          colors={["#ff0", "#ff7f00", "#ff0044", "#4c94f4", "#f4f4f4"]}
+        />
+      )}
       <div className="flex flex-col items-center mx-auto w-[488px] mt-7 max-[756px]:w-full text-center">
         <Image
           src="/assets/icons/check.svg"

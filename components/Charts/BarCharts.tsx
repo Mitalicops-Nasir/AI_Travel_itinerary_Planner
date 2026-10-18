@@ -9,7 +9,6 @@ import {
   LabelList,
   Line,
   Rectangle,
-  ResponsiveContainer,
   XAxis,
   YAxis,
 } from "recharts";
@@ -70,22 +69,6 @@ export function ChartBarDefault({
       percent: item.percentage,
     })) || [];
 
-  //console.log("chartDataSecond", chartDataSecond);
-
-  const chartData = [
-    { interests: "Jan", desktop: 186 },
-    { interests: "Feb", desktop: 305 },
-    { interests: "Mar", desktop: 237 },
-    { interests: "Apr", desktop: 73 },
-    { interests: "May", desktop: 73 },
-    { interests: "Jun", desktop: 73 },
-    { interests: "Jul", desktop: 73 },
-    { interests: "Aug", desktop: 73 },
-    { interests: "Sep", desktop: 73 },
-    { interests: "Oct", desktop: 73 },
-    { interests: "Nov", desktop: 73 },
-    { interests: "Dec", desktop: 73 },
-  ];
   return (
     <div className="grid grid-cols-[repeat(auto-fit,minmax(270px,1fr))] gap-2 mt-4">
       <div className="col-span-1 p-[19px] drop-shadow-2xl drop-shadow-[#0D0A2C14] rounded-[16px] bg-white w-full">

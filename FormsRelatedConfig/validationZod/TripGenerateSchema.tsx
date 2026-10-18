@@ -36,7 +36,6 @@ export const TripGenerateSchema = z.object({
   interests: z.string(),
   groupType: z.string(),
   country: z.string(),
-  imageUrls: z.array(z.string()),
   itinerary: z.array(
     z.object({
       day: z.number(),

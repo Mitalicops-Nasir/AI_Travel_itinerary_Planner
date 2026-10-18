@@ -7,13 +7,14 @@
 export const publicRoutes = [
   "/Trip*",
   "/",
-  "/AI-Trips",
   "/auth/new-verification",
+  // Stripe verifies deliveries via signature, not sessions
+  "/api/webhooks/stripe",
 ];
 
 /**
  * An array of routes that are used for authentication
- * These routes will redirect logged in users to /settings
+ * These routes will redirect logged in users to the default redirect
  * @type {string[]}
  * */
 export const authRoutes = [
@@ -32,8 +33,7 @@ export const authRoutes = [
 export const apiAuthPrefix = "/api/auth";
 
 /**
- * The deafult redirect path after logging in
- * Routes that start with this prefix are used for API authentication purposes
- * @type {string[]}
+ * The default redirect path after logging in
+ * @type {string}
  * */
 export const DEFAULT_LOGIN_REDIRECT = "/";

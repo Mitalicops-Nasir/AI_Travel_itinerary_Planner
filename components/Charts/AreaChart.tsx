@@ -9,6 +9,7 @@ import {
   ChartTooltipContent,
 } from "../ui/chart";
 import Image from "next/image";
+import { type TrendResult } from "@/lib/utils";
 
 const chartConfig = {
   desktop: {

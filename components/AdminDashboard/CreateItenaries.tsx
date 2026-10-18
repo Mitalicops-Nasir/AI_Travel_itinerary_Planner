@@ -19,10 +19,9 @@ import {
 import { SelectItem } from "../ui/select";
 import { NewTrip } from "@/FormsRelatedConfig/validationZod/TripGenerateSchema";
 
-import TripMapForGeneration from "../TripDetails/TripMap";
 import dynamic from "next/dynamic";
 import { getName } from "country-list";
-import { createTrip, GenerateAITripIternary } from "@/actions/CreateTrip";
+import { GenerateAITripIternary } from "@/actions/CreateTrip";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 
@@ -31,7 +30,15 @@ const ReactFlagsSelect = dynamic(() => import("react-flags-select"), {
   loading: () => <p>Loading...</p>, // Optional: show placeholder
 });
 
-const CreateItenaries = ({ userId }: { userId: string | undefined }) => {
+// Leaflet touches window/document at import time, so it must never be SSR'd
+const CountryMap = dynamic(() => import("./CountryMap"), {
+  ssr: false,
+  loading: () => (
+    <p className="text-gray-500 mt-3 ml-2">Select a country to view it on the map</p>
+  ),
+});
+
+const CreateItenaries = () => {
   const [disabled, setDisabled] = useState(false);
   const [selected, setSelectedCountry] = useState<string>("US"); //the state is being used to show the flag and name once clicked otherwise the "watch" updates state directly from the form value
 
@@ -40,7 +47,7 @@ const CreateItenaries = ({ userId }: { userId: string | undefined }) => {
   const form = useForm<z.infer<typeof NewTrip>>({
     resolver: zodResolver(NewTrip),
     defaultValues: {
-      ...NewTrip.default,
+      country: "",
     },
   });
 
@@ -50,19 +57,7 @@ const CreateItenaries = ({ userId }: { userId: string | undefined }) => {
   const onSubmit = async (values: z.infer<typeof NewTrip>) => {
     setDisabled(true);
     try {
-      // const TheTrip = {
-      //   id: "",
-      //   country: values.country,
-      //   duration: values.duration,
-      //   groupType: values.groupType,
-      //   travelStyle: values.travelStyle,
-      //   interests: values.interests,
-      //   budgetEstimate: values.budgetEstimate,
-      // };
-
-      // console.log("TheTrip", TheTrip);
-
-      const MakeAIResponseInDB = await GenerateAITripIternary(values, userId!);
+      const MakeAIResponseInDB = await GenerateAITripIternary(values);
 
       if (MakeAIResponseInDB?.success === false) {
         toast.error("Failed to generate AI Iterinary. Please try again.");
@@ -243,7 +238,7 @@ const CreateItenaries = ({ userId }: { userId: string | undefined }) => {
                 Map
               </p>
 
-              <TripMapForGeneration selectedCountry={selectedCountry} />
+              <CountryMap selectedCountry={selectedCountry ?? ""} />
 
               <div className="border border-[#EAECF0] mt-7 w-full" />
 

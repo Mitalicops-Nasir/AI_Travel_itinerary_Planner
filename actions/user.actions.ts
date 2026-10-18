@@ -1,7 +1,8 @@
 "use server";
 
 import { db } from "@/data/db";
-import { currentUser } from "@/lib/auth";
+import { requireAdmin, requireUser } from "@/lib/guards";
+import { buildMonthlyTrend } from "@/lib/monthly-trend";
 import { calculateTrendPercentage } from "@/lib/utils";
 import { revalidatePath } from "next/cache";
 
@@ -9,11 +10,11 @@ import { subMonths, startOfDay, endOfDay, format } from "date-fns";
 
 export async function getAllUsers() {
   try {
-    const GetCurrentUser = await currentUser();
+    const { user } = await requireUser();
 
-    if (!GetCurrentUser) return null;
+    if (!user) return [];
 
-    const users = await db.user.findMany({
+    return await db.user.findMany({
       select: {
         id: true,
         name: true,
@@ -33,20 +34,23 @@ export async function getAllUsers() {
         createdAt: "desc",
       },
     });
-
-    return {
-      users,
-    };
   } catch (error) {
     console.log(error);
+    return [];
   }
 }
 
 export async function deleteUser(userId: string) {
   try {
-    const GetCurrentUser = await currentUser();
+    const { user: admin, error: authError } = await requireAdmin(
+      "Only admins can delete users"
+    );
 
-    if (!GetCurrentUser) return null;
+    if (!admin) return { error: authError };
+
+    if (admin.id === userId) {
+      return { error: "You cannot delete your own account" };
+    }
 
     await db.user.delete({
       where: {
@@ -59,51 +63,33 @@ export async function deleteUser(userId: string) {
     return { success: "User deleted successfully" };
   } catch (error) {
     console.log(error);
+    return { error: "Could not delete user" };
   }
 }
 
 export async function getUserGrowthPerMonth() {
   const currentYear = new Date().getFullYear();
 
-  const users = await db.user.groupBy({
-    by: ["createdAt"],
-    _count: true,
-    where: {
-      createdAt: {
-        gte: new Date(`${currentYear}-01-01`),
-        lte: new Date(`${currentYear}-12-31`),
+  try {
+    const users = await db.user.findMany({
+      select: { createdAt: true },
+      where: {
+        createdAt: {
+          gte: new Date(`${currentYear}-01-01`),
+          lte: new Date(`${currentYear}-12-31`),
+        },
       },
-    },
-  });
+    });
 
-  // Group by month manually
-  const monthlyCounts = Array.from({ length: 12 }, (_, i) => {
-    const month = i; // 0 to 11
-    const count = users.filter(
-      (u) => new Date(u.createdAt!).getMonth() === month
-    ).length;
-
-    return {
-      month: new Date(2024, month).toLocaleString("default", {
-        month: "short",
-      }), // Jan, Feb, etc.
-      count,
-    };
-  });
-
-  // 3. Get last 2 months' counts
-  const currentMonth = new Date().getMonth();
-  const thisMonthCount = monthlyCounts[currentMonth]?.count || 0;
-  const lastMonthCount = monthlyCounts[currentMonth - 1]?.count || 0;
-
-  // 4. Calculate trend using your function
-  const trend = calculateTrendPercentage(thisMonthCount, lastMonthCount);
-
-  // 5. Return both separately
-  return {
-    monthlyCounts: monthlyCounts,
-    trend,
-  };
+    return buildMonthlyTrend(
+      users
+        .map((user) => user.createdAt)
+        .filter((date): date is Date => date != null)
+    );
+  } catch (error) {
+    console.log(error);
+    return buildMonthlyTrend([]);
+  }
 }
 
 export async function getActiveUserToday() {

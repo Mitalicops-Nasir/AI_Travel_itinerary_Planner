@@ -11,9 +11,7 @@ import { useState } from "react";
 import Image from "next/image";
 import { toast } from "sonner";
 import { setTripRating } from "@/actions/Trip";
-export const RatingSchema = z.object({
-  rating: z.coerce.number().min(1).max(5),
-});
+import { RatingSchema } from "@/FormsRelatedConfig/validationZod/rating";
 
 interface RatingFormProps {
   tripId: string;
@@ -37,7 +35,7 @@ const RatingForm = ({ tripId, userId,}: RatingFormProps) => {
         return toast.error("Login To Rate a Trip");
       }
 
-      const TheRating = await setTripRating(tripId, values.rating, userId);
+      const TheRating = await setTripRating(tripId, values.rating);
 
       if (TheRating?.success) {
         return toast.success("Trip Rated Successfully");
@@ -45,6 +43,8 @@ const RatingForm = ({ tripId, userId,}: RatingFormProps) => {
     } catch (error) {
       toast.error("something went wrong");
       console.log(error);
+    } finally {
+      setDisabled(false);
     }
   }
 

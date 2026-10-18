@@ -104,7 +104,6 @@ ${colorConfig
 
 const ChartTooltip = RechartsPrimitive.Tooltip;
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
 function ChartTooltipContent({
   active,
   payload,
@@ -119,11 +118,9 @@ function ChartTooltipContent({
   color,
   nameKey,
   labelKey,
-}: React.ComponentProps<typeof RechartsPrimitive.Tooltip> &
-  React.ComponentProps<"div"> & {
+}: React.ComponentProps<"div"> &
+  Partial<RechartsPrimitive.TooltipContentProps<number | string, string>> & {
     hideLabel?: boolean;
-    label?: any;
-    payload?: any[];
     hideIndicator?: boolean;
     indicator?: "line" | "dot" | "dashed";
     nameKey?: string;
@@ -260,15 +257,14 @@ function ChartLegendContent({
   verticalAlign = "bottom",
   nameKey,
 }: React.ComponentProps<"div"> &
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  //@ts-expect-error
+  // @ts-expect-error - recharts legend payload typing needs a looser pick here
   Pick<RechartsPrimitive.LegendProps, "payload" | "verticalAlign"> & {
     hideIcon?: boolean;
     nameKey?: string;
   }) {
   const { config } = useChart();
 
-  //@ts-expect-error
+  // @ts-expect-error - payload is only present at runtime
   if (!payload?.length) {
     return null;
   }
@@ -281,7 +277,7 @@ function ChartLegendContent({
         className
       )}
     >
-      {/* @ts-expect-error */}
+      {/* @ts-expect-error - legend payload items are loosely typed */}
       {payload.map((item) => {
         const key = `${nameKey || item.dataKey || "value"}`;
         const itemConfig = getPayloadConfigFromPayload(config, item, key);

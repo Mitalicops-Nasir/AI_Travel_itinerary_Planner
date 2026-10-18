@@ -5,26 +5,11 @@ import HandPickedTrip from "@/components/HomePage/HandPickedTrip";
 import Hero from "@/components/HomePage/hero";
 import { Navbar } from "@/components/HomePage/Navbar";
 
+// New trips should show up immediately instead of being frozen at build time
+export const dynamic = "force-dynamic";
+
 export default async function Home() {
-  const TripRaw = await GetAllTrips();
-
-  if (!TripRaw) {
-    return <div>No trips found.</div>;
-  }
-
-  // Ensure aiResponse.location is always the expected object or null
-  const Trip = TripRaw.map((trip) => ({
-    ...trip,
-    aiResponse: trip.aiResponse
-      ? {
-          ...trip.aiResponse,
-          location:
-            typeof trip.aiResponse.location === "string"
-              ? JSON.parse(trip.aiResponse.location)
-              : trip.aiResponse.location,
-        }
-      : null,
-  }));
+  const trips = await GetAllTrips();
 
   return (
     <div>
@@ -35,7 +20,7 @@ export default async function Home() {
       </section>
 
       <FeaturedTravelSpot />
-      <HandPickedTrip theTrip={Trip} />
+      <HandPickedTrip theTrip={trips} />
       <Footer />
     </div>
   );

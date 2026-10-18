@@ -3,9 +3,9 @@
 import React from "react";
 import Image from "next/image";
 
-import { TheUsersInfo } from "./AllUserTable";
+import { UserTableRow } from "./AllUserTable";
 
-export const AdminDasboardTable = ({ users }: { users: TheUsersInfo }) => {
+export const AdminDasboardTable = ({ users }: { users: UserTableRow[] }) => {
   return (
     <div>
       <table className="table-auto w-full rounded-xl">
@@ -20,7 +20,7 @@ export const AdminDasboardTable = ({ users }: { users: TheUsersInfo }) => {
           </tr>
         </thead>
         <tbody>
-          {users?.users.slice(0, 3).map((user) => (
+          {users.slice(0, 3).map((user) => (
             <tr key={user.id} className="bg-[#F9FBFC]">
               <td className="pt-[18px] pb-[18px] pl-[24px] pr-[24px] align-top border-t-2 border-b-2 border-[#EEF9FF]">
                 <div className="flex items-center gap-[12px] max-[500px]:flex-col max-[500px]:text-center">
@@ -52,7 +52,7 @@ export const AdminDasboardTable = ({ users }: { users: TheUsersInfo }) => {
 export const AdminDasboardTableSecond = ({
   users,
 }: {
-  users: TheUsersInfo;
+  users: UserTableRow[];
 }) => {
   return (
     <div>
@@ -68,7 +68,7 @@ export const AdminDasboardTableSecond = ({
           </tr>
         </thead>
         <tbody>
-          {users?.users.slice(0, 3).map((user) => (
+          {users.slice(0, 3).map((user) => (
             <tr key={user.id} className="bg-[#F9FBFC]">
               <td className="pt-[18px] pb-[18px] pl-[24px] pr-[24px] align-top border-t-2 border-b-2 border-[#EEF9FF]">
                 <div className="flex items-center gap-[12px] max-[500px]:flex-col max-[500px]:text-center">

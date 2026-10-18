@@ -1,39 +1,49 @@
-"use server"
+"use server";
 
 import { Resend } from "resend";
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
-export const sendTwoFactorTokenEmail = async (
-  email: string,
-  token: string
-) => {
-  await resend.emails.send({
-    from: "onboarding@resend.dev",
-    to: email,
-    subject: "2FA Code",
-    html: `<p>Your 2FA Code: ${token}</p>`
-  })
+const APP_URL = process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000";
+const FROM = "onboarding@resend.dev";
+
+async function sendEmail(to: string, subject: string, html: string) {
+  try {
+    const { error } = await resend.emails.send({
+      from: FROM,
+      to,
+      subject,
+      html,
+    });
+
+    if (error) {
+      console.log({ resendError: error });
+      return { success: false, error: error.message };
+    }
+
+    return { success: true };
+  } catch (error) {
+    console.log({ resendError: error });
+    return { success: false, error: "Failed to send email" };
+  }
 }
 
 export const sendPasswordResetEmail = async (email: string, token: string) => {
-  const resetLink = `${process.env.NEXT_PUBLIC_APP_URL}/auth/new-password?token=${token}`;
+  const resetLink = `${APP_URL}/auth/new-password?token=${token}`;
 
-  await resend.emails.send({
-    from: "onboarding@resend.dev",
-    to: email,
-    subject: "Reset Your Password",
-    html: `<p>Click <a href=${resetLink}>here</a> to reset your password.</p>`,
-  });
+  return sendEmail(
+    email,
+    "Reset Your Password",
+    `<p>Click <a href="${resetLink}">here</a> to reset your password.</p>`
+  );
 };
 
 export const sendVerificationEmail = async (email: string, token: string) => {
-  const confirmLink = `${process.env.NEXT_PUBLIC_APP_URL}/auth/new-verification?token=${token}`;
+  const confirmLink = `${APP_URL}/auth/new-verification?token=${token}`;
 
-  await resend.emails.send({
-    from: "onboarding@resend.dev",
-    to: email,
-    subject: "Confirm your email",
-    html: `<p>Click <a href=${confirmLink}>here</a> to confirm email.</p>`,
-  });
+  return sendEmail(
+    email,
+    "Confirm your email",
+    `<p>Click <a href="${confirmLink}">here</a> to confirm email.</p>`
+  );
 };
