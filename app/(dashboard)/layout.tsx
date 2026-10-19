@@ -1,6 +1,6 @@
-import SideNavbar from "@/components/AdminDashboard/SideNavbar";
+import { AppShell } from "@/components/AdminDashboard/AppShell";
 import { currentUser } from "@/lib/auth";
-import { Toaster } from "sonner";
+import { isPro } from "@/features/membership/lib";
 
 export default async function RootLayout({
   children,
@@ -8,12 +8,12 @@ export default async function RootLayout({
   children: React.ReactNode;
 }>) {
   const TheUser = await currentUser();
-  return (
-    <div className="flex max-[768px]:flex-col w-full h-full">
-      <SideNavbar user={TheUser} />
-      {children}
 
-      <Toaster />
-    </div>
+  const userIsPro = TheUser?.id ? await isPro(TheUser.id) : false;
+
+  return (
+    <AppShell user={TheUser} isPro={userIsPro}>
+      {children}
+    </AppShell>
   );
 }

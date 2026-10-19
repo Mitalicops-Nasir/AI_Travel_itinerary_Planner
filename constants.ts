@@ -20,21 +20,41 @@ export const sidebarItems = [
   },
   {
     id: 2,
-    icon: "/assets/icons/users.svg",
-    label: "All Users",
-    href: "/all-users",
-  },
-  {
-    id: 3,
     icon: "/assets/icons/itinerary.svg",
-    label: "AI Trips",
+    label: "My Trips",
     href: "/AI-Trips",
   },
   {
-    id: 4,
+    id: 3,
     icon: "/assets/icons/plus.svg",
     label: "Create Trips",
     href: "/Create-Trips",
+  },
+  {
+    id: 4,
+    icon: "/assets/icons/home.svg",
+    label: "My Profile",
+    href: "/profile",
+  },
+  {
+    id: 5,
+    icon: "/assets/icons/itinerary.svg",
+    label: "Pro Plan",
+    href: "/pro",
+  },
+  {
+    id: 6,
+    icon: "/assets/icons/users.svg",
+    label: "All Users",
+    href: "/all-users",
+    adminOnly: true,
+  },
+  {
+    id: 7,
+    icon: "/assets/icons/itinerary.svg",
+    label: "Curated Trips",
+    href: "/curated-trips",
+    adminOnly: true,
   },
 ];
 

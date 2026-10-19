@@ -1,6 +1,8 @@
 // app/api/webhooks/stripe/route.ts (App Router POST route)
 import { db } from "@/data/db";
 import { stripe } from "@/lib/stripe";
+import { applySubscriptionEvent } from "@/features/membership/lib";
+import { cloneTripForBuyer } from "@/features/curated-trips/lib";
 import { headers } from "next/headers";
 import { NextResponse } from "next/server";
 import Stripe from "stripe";
@@ -90,6 +92,27 @@ export async function POST(req: Request) {
         });
       }
 
+      // Subscription checkouts (Pro membership) — payment flow above untouched
+      await applySubscriptionEvent(event);
+
+      // Curated purchases — booking is already PAID above; clone for the buyer
+      if (session.metadata?.kind === "curated" && tripId && userId) {
+        const booking = await db.booking.findUnique({
+          where: { userId_tripId: { userId, tripId } },
+          select: { id: true },
+        });
+
+        if (booking) {
+          await cloneTripForBuyer(booking.id);
+        }
+      }
+
+      break;
+    }
+
+    case "customer.subscription.updated":
+    case "customer.subscription.deleted": {
+      await applySubscriptionEvent(event);
       break;
     }
 

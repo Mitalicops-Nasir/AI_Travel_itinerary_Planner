@@ -23,7 +23,12 @@ import dynamic from "next/dynamic";
 import { getName } from "country-list";
 import { GenerateAITripIternary } from "@/actions/CreateTrip";
 import { toast } from "sonner";
+import { UpgradeModal } from "@/features/membership/components/UpgradeModal";
+import type { QuotaView } from "@/features/membership/types";
 import { useRouter } from "next/navigation";
+import { ImportTripModal } from "@/features/trip-import/components/ImportTripModal";
+import type { ImportDraft } from "@/features/trip-import/types";
+import { Wand2 } from "lucide-react";
 
 const ReactFlagsSelect = dynamic(() => import("react-flags-select"), {
   ssr: false, // avoids hydration mismatch error
@@ -41,6 +46,9 @@ const CountryMap = dynamic(() => import("./CountryMap"), {
 const CreateItenaries = () => {
   const [disabled, setDisabled] = useState(false);
   const [selected, setSelectedCountry] = useState<string>("US"); //the state is being used to show the flag and name once clicked otherwise the "watch" updates state directly from the form value
+  const [importOpen, setImportOpen] = useState(false);
+  const [upgradeOpen, setUpgradeOpen] = useState(false);
+  const [limitQuota, setLimitQuota] = useState<QuotaView | null>(null);
 
   const router = useRouter();
 
@@ -48,6 +56,7 @@ const CreateItenaries = () => {
     resolver: zodResolver(NewTrip),
     defaultValues: {
       country: "",
+      startDate: null,
     },
   });
 
@@ -60,6 +69,16 @@ const CreateItenaries = () => {
       const MakeAIResponseInDB = await GenerateAITripIternary(values);
 
       if (MakeAIResponseInDB?.success === false) {
+        if (
+          "limitReached" in MakeAIResponseInDB &&
+          MakeAIResponseInDB.limitReached
+        ) {
+          setLimitQuota(MakeAIResponseInDB.quota ?? null);
+          setUpgradeOpen(true);
+          setDisabled(false);
+          return;
+        }
+
         toast.error("Failed to generate AI Iterinary. Please try again.");
         setDisabled(false);
         return;
@@ -80,6 +99,33 @@ const CreateItenaries = () => {
       setDisabled(false);
       console.log(error);
     }
+  };
+
+  const applyImportDraft = (draft: ImportDraft) => {
+    if (draft.country) {
+      form.setValue("country", draft.country, { shouldValidate: true });
+      setSelectedCountry("");
+    }
+
+    if (draft.suggestedDuration) {
+      form.setValue("duration", draft.suggestedDuration, {
+        shouldValidate: true,
+      });
+    }
+
+    const matchedInterest = draft.suggestedInterests.find((tag) =>
+      interests.includes(tag as (typeof interests)[number])
+    );
+
+    if (matchedInterest) {
+      form.setValue(
+        "interests",
+        matchedInterest as (typeof interests)[number],
+        { shouldValidate: true }
+      );
+    }
+
+    toast.success("Details filled in — check them and generate your trip.");
   };
   return (
     <section className="bg-[#F9FBFC] w-full h-full p-[4%]">
@@ -106,6 +152,15 @@ const CreateItenaries = () => {
         <p className="text-[18px] text-[#7F7E83] font-[400]">
           View and Generate AI Travel Plans
         </p>
+
+        <button
+          type="button"
+          onClick={() => setImportOpen(true)}
+          className="mt-4 flex h-[44px] w-fit cursor-pointer items-center gap-2 rounded-full bg-[#256FF1] px-5 text-[15px] font-[500] text-white transition-colors hover:bg-[#1D5AD9]"
+        >
+          <Wand2 className="size-4" />
+          <p>Import from a link, text or photo</p>
+        </button>
       </div>
 
       <Form {...form}>
@@ -144,6 +199,13 @@ const CreateItenaries = () => {
                 name="duration"
                 label="Duration"
                 placeholder="Enter number of days (e.g., 5, 12)"
+              />
+
+              <CustomFormForTrip
+                fieldType={FormFieldType.DATE_PICKER}
+                control={form.control}
+                name="startDate"
+                label="Start date (optional)"
               />
 
               <CustomFormForTrip
@@ -275,6 +337,19 @@ const CreateItenaries = () => {
           </div>
         </form>
       </Form>
+
+      <ImportTripModal
+        open={importOpen}
+        onOpenChange={setImportOpen}
+        onApply={applyImportDraft}
+      />
+
+      <UpgradeModal
+        open={upgradeOpen}
+        onOpenChange={setUpgradeOpen}
+        reason="limit"
+        quota={limitQuota}
+      />
     </section>
   );
 };

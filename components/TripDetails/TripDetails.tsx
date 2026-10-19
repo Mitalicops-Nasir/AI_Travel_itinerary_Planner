@@ -19,6 +19,26 @@ import {
   type TripDetailsView,
 } from "@/lib/trip-view";
 import { TagPill } from "@/components/TagPill";
+import { BookableOffersCard } from "@/features/bookable-offers/components/BookableOffersCard";
+import { EssentialsRow } from "@/features/bookable-offers/components/EssentialsRow";
+import { CountdownCard } from "@/features/trip-day-view/components/CountdownCard";
+import { TripDayView } from "@/features/trip-day-view/components/TripDayView";
+import type { TripDayViewModel } from "@/features/trip-day-view/types";
+import { ShareControls } from "@/features/trip-sharing/components/ShareControls";
+import { PremiumTripBadge } from "@/features/curated-trips/components/PremiumTripBadge";
+import { PurchasePreviewGate } from "@/features/curated-trips/components/PurchasePreviewGate";
+import { JournalTimeline } from "@/features/trip-journal/components/JournalTimeline";
+import { SuggestionsPanel } from "@/features/group-trips/components/SuggestionsPanel";
+import type {
+  MemberView,
+  SuggestionView,
+} from "@/features/group-trips/types";
+import type { JournalEntryView } from "@/features/trip-journal/types";
+import { PartyPopper } from "lucide-react";
+import type {
+  DayOffersMap,
+  EssentialsOffer,
+} from "@/features/bookable-offers/types";
 
 // Leaflet touches window/document at import time, so it must never be SSR'd
 const TripMap = dynamic(
@@ -37,12 +57,40 @@ const TheTripDetails = ({
   TheRating,
   AverageRatingForTrip,
   ThePopularTripsData,
+dayOffers,
+  essentialsOffers,
+  tripDayView,
+  share,
+  journalEntries,
+  journalPromptDay,
+  curated,
+  group,
 }: {
   individualTrip: TripDetailsView;
   userId?: string;
   TheRating: { UserRatingOfATrip: { rating: number } | null } | null | undefined;
   ThePopularTripsData: TripCardView[];
   AverageRatingForTrip: number | null | undefined;
+  dayOffers?: DayOffersMap;
+  essentialsOffers?: EssentialsOffer[];
+  tripDayView?: TripDayViewModel;
+  share?: {
+    state: "ACTIVE" | "PAUSED" | "REVOKED" | null;
+    joinEnabled: boolean;
+    url: string | null;
+  } | null;
+  journalEntries?: JournalEntryView[];
+  journalPromptDay?: number | null;
+  curated?: {
+    priceInCents: number | null;
+    locked: boolean;
+    isPublished: boolean;
+  } | null;
+  group?: {
+    suggestions: SuggestionView[];
+    members: MemberView[];
+    isOwner: boolean;
+  } | null;
 }) => {
   const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
@@ -91,20 +139,6 @@ const TheTripDetails = ({
   if (!aiResponse) {
     return (
       <section className="bg-[#F9FBFC] p-[50px] h-full">
-        <Button
-          className="bg-[#FFFFFF] pt-[12px] h-[56px] w-[147px] pr-[30px] pb-[12px] pl-[30px] rounded-[1px]"
-          asChild
-        >
-          <Link href="/" className="flex items-center gap-2">
-            <Image
-              src="/assets/icons/arrow-left.svg"
-              alt="back"
-              width={17}
-              height={17}
-            />
-            <p className="text-[16px] text-black font-semibold">Go Back</p>
-          </Link>
-        </Button>
         <h1 className="text-[28px] font-[600] text-[#1F1F36] mt-8">
           This trip hasn&apos;t finished generating its details. Please try
           again later.
@@ -129,25 +163,58 @@ const TheTripDetails = ({
     <>
       <section className="bg-[#F9FBFC] pl-[50px] pr-[50px] pt-[30px] max-[768px]:pl-[15px] max-[768px]:pr-[15px] h-full">
         <div className="flex gap-[10px] max-[770px]:flex-col">
-          <Button
-            className="bg-[#FFFFFF] pt-[12px] h-[56px] w-[147px] pr-[30px] pb-[12px] pl-[30px] rounded-[1px]"
-            asChild
-          >
-            <Link href="/" className="flex items-center gap-2">
-              <Image
-                src="/assets/icons/arrow-left.svg"
-                alt="back"
-                width={17}
-                height={17}
+          {tripDayView?.phase === "upcoming" &&
+            tripDayView.daysUntilStart !== null &&
+            tripDayView.daysUntilStart >= 0 && (
+              <CountdownCard
+                destination={tripDayView.city}
+                daysUntilStart={tripDayView.daysUntilStart}
               />
+            )}
 
-              <p className="text-[16px] text-black font-semibold">Go Back</p>
-            </Link>
-          </Button>
+          {tripDayView?.phase === "active" && (
+            <TripDayView
+              model={tripDayView}
+              tripId={individualTrip.id}
+              userId={userId}
+            />
+          )}
+
+          {tripDayView?.phase === "completed" && (
+            <div className="rounded-[16px] border border-[#E3F1FF] bg-[#F9FBFC] p-4">
+              <div className="flex items-center gap-3">
+                <span className="flex size-10 items-center justify-center rounded-full bg-white">
+                  <PartyPopper className="size-5 text-[#C11574]" />
+                </span>
+                <div>
+                  <p className="text-[15px] font-semibold text-[#1F1F36]">
+                    This trip is over — nice one!
+                  </p>
+                  <p className="text-[13px] text-[#5C5A70]">
+                    You checked in on {tripDayView.completedDayCount}{" "}
+                    {tripDayView.completedDayCount === 1 ? "day" : "days"}.
+                  </p>
+                </div>
+              </div>
+            </div>
+          )}
           <div>
-            <h1 className="text-[40px] font-[600] text-[#1F1F36]">
-              {aiResponse.title}
-            </h1>
+            <div className="flex flex-wrap items-center gap-3">
+              <h1 className="text-[40px] font-[600] text-[#1F1F36]">
+                {aiResponse.title}
+              </h1>
+
+              {curated && <PremiumTripBadge />}
+
+              {share && (
+                <ShareControls
+                  tripId={individualTrip.id}
+                  state={share.state}
+                  joinEnabled={share.joinEnabled}
+                  url={share.url}
+                />
+              )}
+            </div>
 
             <div className="flex items-center justify-between gap-6 mt-4 mb-4">
               <span className="flex items-center gap-2 max-[770px]:hidden">
@@ -278,6 +345,21 @@ const TheTripDetails = ({
                 {aiResponse.description}
               </p>
 
+              {curated?.locked ? (
+                <PurchasePreviewGate
+                  tripId={individualTrip.id}
+                  priceInCents={curated.priceInCents}
+                  isLoggedIn={!!userId}
+                />
+              ) : (
+                <>
+              {essentialsOffers && essentialsOffers.length > 0 && (
+                <EssentialsRow
+                  offers={essentialsOffers}
+                  tripId={individualTrip.id}
+                />
+              )}
+
               {itineraryDays.map((item, index) => {
                 const hasTransit = item.gettingThere !== "";
 
@@ -315,6 +397,14 @@ const TheTripDetails = ({
                         • {activity.description}
                       </p>
                     ))}
+
+                    {dayOffers?.[item.day] && dayOffers[item.day].length > 0 && (
+                      <BookableOffersCard
+                        offers={dayOffers[item.day]}
+                        tripId={individualTrip.id}
+                        city={item.location}
+                      />
+                    )}
 
                     <div className="border border-[#E3F1FF] mt-9" />
                   </div>
@@ -357,6 +447,31 @@ const TheTripDetails = ({
                 <TripMap coordinates={TheCoordinates} city={location.city} />
               ) : null}
 
+              {userId && (
+                <JournalTimeline
+                  tripId={individualTrip.id}
+                  userId={userId}
+                  entries={journalEntries ?? []}
+                  promptDay={journalPromptDay ?? null}
+                  city={
+                    tripDayView?.city ??
+                    location?.city ??
+                    individualTrip.country
+                  }
+                />
+              )}
+
+              {group && userId && (
+                <SuggestionsPanel
+                  tripId={individualTrip.id}
+                  currentUserId={userId}
+                  isOwner={group.isOwner}
+                  maxDay={individualTrip.duration}
+                  suggestions={group.suggestions}
+                  members={group.members}
+                />
+              )}
+
               <Button
                 onClick={onSubmit}
                 disabled={isLoading}
@@ -368,6 +483,8 @@ const TheTripDetails = ({
                   ${aiResponse.estimatedPrice}
                 </span>
               </Button>
+                </>
+              )}
             </div>
           </div>
         </div>

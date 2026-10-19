@@ -10,8 +10,21 @@ import { generateText, Output } from "ai";
 import { z } from "zod";
 import { requireUser } from "@/lib/guards";
 import { buildTripPrompt } from "@/lib/trip-prompt";
+import { loadProfileSummary } from "@/features/travel-memory/lib";
+import { assertCanGenerate } from "@/features/membership/lib";
 
 type TripGenerateOutput = z.infer<typeof TripGenerateSchema>;
+
+/** Accepts a Date (date picker) or a yyyy-mm-dd string; null when empty. */
+function parseStartDate(value: string | Date | null | undefined): Date | null {
+  if (!value) return null;
+
+  const parsed = value instanceof Date ? value : new Date(`${value}T09:00:00`);
+
+  if (Number.isNaN(parsed.getTime())) return null;
+
+  return parsed;
+}
 
 async function searchTripImages(query: string): Promise<string[]> {
   const unsplashApiKey = process.env.UNSPLASH_ACCESS_KEY;
@@ -60,7 +73,32 @@ export async function GenerateAITripIternary(values: z.infer<typeof NewTrip>) {
 
     const validated = validatedFields.data;
 
-    const prompt = buildTripPrompt(validated);
+    // Free-tier quota gate (FR-027/030) — checked before any AI work
+    const gate = await assertCanGenerate(user.id);
+
+    if (!gate.ok) {
+      return {
+        success: false as const,
+        error: gate.error,
+        limitReached: true as const,
+        quota: gate.quota,
+      };
+    }
+
+    // Optional travel dates: startDate drives the live "Today" view
+    const startDate = parseStartDate(validated.startDate);
+    const endDate = startDate
+      ? new Date(
+          startDate.getTime() + (validated.duration - 1) * 86_400_000
+        )
+      : null;
+
+    // Optional personalization from the traveler's saved memory (never blocks)
+    const profileSummary = await loadProfileSummary(user.id);
+
+    const prompt = profileSummary
+      ? `${buildTripPrompt(validated)}\n\n${profileSummary}`
+      : buildTripPrompt(validated);
 
     const model = google("gemini-2.5-flash");
 
@@ -93,6 +131,8 @@ export async function GenerateAITripIternary(values: z.infer<typeof NewTrip>) {
         travelStyle: validated.travelStyle,
         interests: validated.interests,
         budgetEstimate: validated.budgetEstimate,
+        startDate,
+        endDate,
         aiResponse: {
           create: {
             title: aiTrip.name,
