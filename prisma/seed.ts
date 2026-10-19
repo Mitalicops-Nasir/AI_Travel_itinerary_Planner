@@ -118,6 +118,161 @@ async function main() {
       emailVerified: new Date(),
     },
   });
+
+  // -------------------------------------------------------------------------
+  // Travel Engagement Suite sample data (upsert-only — never deletes data)
+  // -------------------------------------------------------------------------
+
+  const ava = await db.user.findUnique({
+    where: { email: "ava.patel@example.com" },
+  });
+
+  if (ava) {
+    await db.travelProfile.upsert({
+      where: { userId: ava.id },
+      update: {},
+      create: {
+        userId: ava.id,
+        pace: "balanced",
+        budgetStyle: "mid-range",
+        interests: ["food", "museums", "hiking"],
+        dietaryNeeds: "vegetarian",
+      },
+    });
+
+    const visitedDestinations = [
+      { country: "Japan", city: "Tokyo", year: 2023 },
+      { country: "Italy", city: "Rome", year: 2024 },
+    ];
+
+    for (const visited of visitedDestinations) {
+      await db.visitedDestination.upsert({
+        where: {
+          userId_country_city: {
+            userId: ava.id,
+            country: visited.country,
+            city: visited.city,
+          },
+        },
+        update: {},
+        create: { userId: ava.id, ...visited },
+      });
+    }
+  }
+
+  const admin = await db.user.findUnique({
+    where: { email: "admin@example.com" },
+  });
+
+  if (admin) {
+    const existingCurated = await db.trip.findFirst({
+      where: { userId: admin.id, isCurated: true },
+    });
+
+    if (!existingCurated) {
+      const curatedItinerary = {
+        day: [
+          {
+            day: 1,
+            location: "Lisbon",
+            gettingThere: "Land at Humberto Delgado Airport, 20 min taxi to Alfama",
+            activities: [
+              { time: "Afternoon", description: "Check in and walk the Alfama lanes" },
+              { time: "Evening", description: "Sunset at Miradouro da Senhora do Monte" },
+            ],
+          },
+          {
+            day: 2,
+            location: "Lisbon",
+            gettingThere: "Tram 28 from Alfama",
+            activities: [
+              { time: "Morning", description: "Belem Tower and Pastéis de Belém" },
+              { time: "Afternoon", description: "Time Out Market food crawl" },
+            ],
+          },
+          {
+            day: 3,
+            location: "Sintra",
+            gettingThere: "40 min train from Rossio station",
+            activities: [
+              { time: "Morning", description: "Pena Palace and park" },
+              { time: "Afternoon", description: "Quinta da Regaleira gardens" },
+            ],
+          },
+          {
+            day: 4,
+            location: "Cascais",
+            gettingThere: "Coastal train from Lisbon",
+            activities: [
+              { time: "Morning", description: "Boca do Inferno cliffs" },
+              { time: "Afternoon", description: "Beach time at Praia da Rainha" },
+            ],
+          },
+          {
+            day: 5,
+            location: "Porto",
+            gettingThere: "3 h train from Lisbon",
+            activities: [
+              { time: "Afternoon", description: "Ribeira district walk" },
+              { time: "Evening", description: "Port tasting in Vila Nova de Gaia" },
+            ],
+          },
+          {
+            day: 6,
+            location: "Porto",
+            gettingThere: "Walk + metro inside the city",
+            activities: [
+              { time: "Morning", description: "Livraria Lello and Clérigos Tower" },
+              { time: "Afternoon", description: "Douro river cruise" },
+            ],
+          },
+          {
+            day: 7,
+            location: "Porto",
+            gettingThere: "Return flight from Porto airport",
+            activities: [
+              { time: "Morning", description: "Bolhão Market and last coffee" },
+            ],
+          },
+        ],
+      };
+
+      await db.trip.create({
+        data: {
+          userId: admin.id,
+          country: "Portugal",
+          duration: 7,
+          groupType: "Couple",
+          travelStyle: "Relaxed",
+          interests: "food, coast, history",
+          budgetEstimate: "1500",
+          isCurated: true,
+          curatedPriceInCents: 2900,
+          isPublished: true,
+          aiResponse: {
+            create: {
+              title: "7 Days in Portugal - Coast & Culture (Curated)",
+              description:
+                "A ready-made, hand-checked week across Lisbon, Sintra, Cascais and Porto. Buy it once, make it yours.",
+              estimatedPrice: "29",
+              duration: 7,
+              budget: "1500",
+              travelStyle: "Relaxed",
+              country: "Portugal",
+              interests: "food, coast, history",
+              groupType: "Couple",
+              tags: ["curated", "coastal", "food"],
+              bestTimeToVisit: ["spring", "early autumn"],
+              weatherInfo: ["mild, 15-25C most of the year"],
+              location: { city: "Lisbon", coordinates: [38.7223, -9.1393] },
+              images: [],
+              itinerary: curatedItinerary,
+            },
+          },
+        },
+      });
+    }
+  }
 }
 
 main()

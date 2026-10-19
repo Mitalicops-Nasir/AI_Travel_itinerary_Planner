@@ -10,7 +10,7 @@ const HandPickedTrip = ({ theTrip }: { theTrip: TripCardView[] }) => {
   const { page, totalPages, pageItems, goToPage } = usePagination(theTrip, 3);
 
   return (
-    <section className="bg-[#F9FBFC] w-full pl-[140px] pt-[50px] max-[768px]:pr-[40px] max-[768px]:pl-[40px] pr-[140px]">
+    <section id="trips" className="bg-[#F9FBFC] w-full pl-[140px] pt-[50px] max-[768px]:pr-[40px] max-[768px]:pl-[40px] pr-[140px] scroll-mt-[100px]">
       <div className="flex flex-col gap-[10px] mb-[35px]">
         <h1 className="text-[36px] font-[700] leading-[44px]">
           Handpicked Trips

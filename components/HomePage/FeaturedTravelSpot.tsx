@@ -3,7 +3,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
 
 const FeaturedTravelSpot = () => {
   return (
-    <section className="bg-[#F9FBFC] w-full pl-[140px] pt-[50px] pb-[80px] max-[768px]:pr-[40px] max-[768px]:pl-[40px] pr-[140px]">
+    <section id="destinations" className="bg-[#F9FBFC] w-full pl-[140px] pt-[50px] pb-[80px] max-[768px]:pr-[40px] max-[768px]:pl-[40px] pr-[140px] scroll-mt-[100px]">
       <div className="mb-8">
         <h1 className="text-[36px] font-[700] leading-[44px] mb-3">
           Featured Travel Destinations

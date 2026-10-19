@@ -16,6 +16,8 @@ export const NewTrip = z.object({
   travelStyle: z.enum([...travelStyles] as [string, ...string[]]),
   interests: z.enum([...interests] as [string, ...string[]]),
   budgetEstimate: z.enum([...budgetOptions] as [string, ...string[]]),
+  // Optional trip start date — enables the live "Today" view while travelling
+  startDate: z.union([z.string(), z.date()]).nullable().optional(),
 });
 
 export const TripGenerateSchema = z.object({

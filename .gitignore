@@ -41,3 +41,6 @@ yarn-error.log*
 next-env.d.ts
 
 /generated/prisma
+
+# journal photo uploads (user content)
+/public/uploads/journal/

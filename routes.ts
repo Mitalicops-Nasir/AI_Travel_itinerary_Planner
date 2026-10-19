@@ -8,6 +8,10 @@ export const publicRoutes = [
   "/Trip*",
   "/",
   "/auth/new-verification",
+  // Public follow-along share pages and their polling endpoint
+  "/api/public/trips*",
+  // Public recap image endpoint (respects share state)
+  "/api/recap*",
   // Stripe verifies deliveries via signature, not sessions
   "/api/webhooks/stripe",
 ];

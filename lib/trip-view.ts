@@ -26,12 +26,16 @@ export type TripCardView = {
 
 export type TripDetailsView = {
   id: string;
+  country: string;
   duration: number;
   createdAt: Date;
+  startDate: Date | null;
+  endDate: Date | null;
   aiResponse: {
     title: string;
     description: string;
     estimatedPrice: string;
+    interests: string;
     tags: string[];
     bestTimeToVisit: string[];
     weatherInfo: string[];
@@ -85,12 +89,16 @@ export function toTripCard(row: TripCardRow): TripCardView {
 
 type TripDetailsRow = {
   id: string;
+  country: string;
   duration: number;
   createdAt: Date;
+  startDate: Date | null;
+  endDate: Date | null;
   aiResponse: {
     title: string;
     description: string;
     estimatedPrice: string;
+    interests: string;
     tags: string[];
     bestTimeToVisit: string[];
     weatherInfo: string[];
@@ -106,8 +114,11 @@ export function toTripDetails(row: TripDetailsRow): TripDetailsView {
   if (!aiResponse) {
     return {
       id: row.id,
+      country: row.country,
       duration: row.duration,
       createdAt: row.createdAt,
+      startDate: row.startDate,
+      endDate: row.endDate,
       aiResponse: null,
     };
   }
@@ -119,12 +130,16 @@ export function toTripDetails(row: TripDetailsRow): TripDetailsView {
 
   return {
     id: row.id,
+    country: row.country,
     duration: row.duration,
     createdAt: row.createdAt,
+    startDate: row.startDate,
+    endDate: row.endDate,
     aiResponse: {
       title: aiResponse.title,
       description: aiResponse.description,
       estimatedPrice: aiResponse.estimatedPrice,
+      interests: aiResponse.interests ?? "",
       tags: aiResponse.tags ?? [],
       bestTimeToVisit: aiResponse.bestTimeToVisit ?? [],
       weatherInfo: aiResponse.weatherInfo ?? [],

@@ -31,6 +31,16 @@ model User {
   ratings TripRating[]
 
   booking Booking[]
+
+  travelProfile       TravelProfile?
+  visitedDestinations VisitedDestination[]
+  membership          Membership?
+  badges              Badge[]
+  checkIns            CheckIn[]
+  journalEntries      JournalEntry[]
+  tripMemberships     TripMember[]
+  suggestions         TripSuggestion[]
+  suggestionVotes     SuggestionVote[]
 }
 
 model Account {
@@ -82,6 +92,18 @@ model Trip {
   interests      String
   budgetEstimate String
 
+  // Trip dates (optional) — drive the day view / live mode
+  startDate DateTime?
+  endDate   DateTime?
+
+  // Curated (premium) trips — admin managed
+  isCurated           Boolean @default(false)
+  curatedPriceInCents Int?
+  isPublished         Boolean @default(false)
+
+  // Set on the buyer's personal copy cloned from a curated trip
+  copiedFromTripId String?
+
   createdAt  DateTime    @default(now())
   aiResponse AIResponse?
 
@@ -89,7 +111,14 @@ model Trip {
 
   booking Booking[]
 
+  shareLink      ShareLink?
+  members        TripMember[]
+  checkIns       CheckIn[]
+  journalEntries JournalEntry[]
+  suggestions    TripSuggestion[]
+
   @@index([userId])
+  @@index([isCurated, isPublished])
 }
 
 model AIResponse {
@@ -144,6 +173,9 @@ model Booking {
   stripeSessionId String? // populated after checkout
   status          BookingStatus @default(PENDING)
 
+  // Idempotency marker for curated-trip purchases: set to the buyer's cloned trip id
+  copiedTripId String?
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -154,4 +186,211 @@ enum BookingStatus {
   PENDING // Created but not paid
   PAID // Paid successfully
   CANCELLED // Stripe canceled or failed
+}
+
+// ---------------------------------------------------------------------------
+// Travel Engagement & Monetization Suite (001-travel-engagement-suite)
+// All models below are additive; see specs/001-travel-engagement-suite/data-model.md
+// ---------------------------------------------------------------------------
+
+model TravelProfile {
+  id     String @id @default(cuid()) @map("_id")
+  userId String @unique
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  pace               String? // relaxed | balanced | packed
+  budgetStyle        String? // shoestring | mid-range | comfort | luxury
+  interests          String[]
+  dietaryNeeds       String?
+  accessibilityNeeds String?
+  notes              String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model VisitedDestination {
+  id     String @id @default(cuid()) @map("_id")
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  country String
+  city    String?
+  year    Int?
+
+  createdAt DateTime @default(now())
+
+  @@unique([userId, country, city])
+  @@index([userId])
+}
+
+model ShareLink {
+  id     String @id @default(cuid()) @map("_id")
+  tripId String @unique
+  trip   Trip   @relation(fields: [tripId], references: [id], onDelete: Cascade)
+
+  token       String        @unique // crypto.randomUUID()
+  state       ShareLinkState @default(ACTIVE)
+  joinEnabled Boolean       @default(false) // allow logged-in friends to join the trip
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+enum ShareLinkState {
+  ACTIVE
+  PAUSED
+  REVOKED
+}
+
+model TripMember {
+  id     String @id @default(cuid()) @map("_id")
+  tripId String
+  userId String
+  role   TripMemberRole @default(MEMBER)
+
+  joinedAt DateTime @default(now())
+
+  trip Trip @relation(fields: [tripId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([tripId, userId])
+  @@index([userId])
+}
+
+enum TripMemberRole {
+  OWNER
+  MEMBER
+}
+
+model CheckIn {
+  id     String @id @default(cuid()) @map("_id")
+  tripId String
+  userId String
+
+  day       Int
+  stopKey   String // `${day}:${activityIndex}`
+  stopTitle String
+  note      String?
+  photoUrl  String?
+
+  checkedInAt DateTime @default(now())
+
+  trip Trip @relation(fields: [tripId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([tripId, userId, stopKey])
+  @@index([tripId])
+}
+
+model JournalEntry {
+  id     String @id @default(cuid()) @map("_id")
+  tripId String
+  userId String
+
+  day    Int?
+  note   String?
+  photos String[] // storage paths/URLs
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  trip Trip @relation(fields: [tripId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([tripId])
+}
+
+model Badge {
+  id     String @id @default(cuid()) @map("_id")
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  type String // FIRST_TRIP | FIVE_CITIES | THREE_COUNTRIES (string for future types)
+
+  earnedAt DateTime @default(now())
+
+  @@unique([userId, type])
+}
+
+model Membership {
+  id     String @id @default(cuid()) @map("_id")
+  userId String @unique
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  tier   MembershipTier   @default(FREE)
+  status MembershipStatus @default(ACTIVE)
+
+  stripeCustomerId     String?
+  stripeSubscriptionId String?
+  currentPeriodEnd     DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+enum MembershipTier {
+  FREE
+  PRO
+}
+
+enum MembershipStatus {
+  ACTIVE
+  PAST_DUE
+  CANCELED
+  EXPIRED
+}
+
+model TripSuggestion {
+  id       String @id @default(cuid()) @map("_id")
+  tripId   String
+  authorId String
+
+  day   Int
+  title String
+  notes String?
+
+  status     SuggestionStatus @default(OPEN)
+  resolvedAt DateTime?
+
+  createdAt DateTime @default(now())
+
+  trip   Trip             @relation(fields: [tripId], references: [id], onDelete: Cascade)
+  author User             @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  votes  SuggestionVote[]
+
+  @@index([tripId])
+}
+
+enum SuggestionStatus {
+  OPEN
+  APPROVED
+  DECLINED
+}
+
+model SuggestionVote {
+  id           String @id @default(cuid()) @map("_id")
+  suggestionId String
+  userId       String
+
+  createdAt DateTime @default(now())
+
+  suggestion TripSuggestion @relation(fields: [suggestionId], references: [id], onDelete: Cascade)
+  user       User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([suggestionId, userId])
+}
+
+model OfferClick {
+  id          String @id @default(cuid()) @map("_id")
+  userId      String?
+  tripId      String?
+  partner     String // viator | getyourguide | booking | insurance | esim | car
+  kind        String // activity | stay | insurance | esim | car
+  destination String?
+
+  createdAt DateTime @default(now())
+
+  @@index([partner])
+  @@index([createdAt])
 }

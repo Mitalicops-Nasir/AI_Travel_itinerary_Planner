@@ -8,6 +8,7 @@ import {
   AdminDasboardTable,
   AdminDasboardTableSecond,
 } from "@/components/AdminDashboard/AdminDasboardTable";
+import { getOfferClickStats } from "@/features/bookable-offers/actions";
 
 import { ChartArea } from "@/components/Charts/AreaChart";
 import { ChartBarDefault } from "@/components/Charts/BarCharts";
@@ -20,12 +21,14 @@ const page = async () => {
     TotalTripGrowthPerMonth,
     ActiveUserTodayVSLastMonthSameDay,
     LatestUsers,
+    OfferClickStats,
   ] = await Promise.all([
     TripTrends(),
     getUserGrowthPerMonth(),
     getTotalTripGrowthPerMonth(),
     getActiveUserToday(),
     getAllUsers(),
+    getOfferClickStats(),
   ]);
 
   return (
@@ -53,6 +56,21 @@ const page = async () => {
 
         <div className="p-[19px] drop-shadow-2xl drop-shadow-[#0D0A2C14] mt-5 rounded-[16px] bg-white w-full">
           <AdminDasboardTableSecond users={LatestUsers} />
+        </div>
+
+        <div className="p-[19px] drop-shadow-2xl drop-shadow-[#0D0A2C14] mt-5 rounded-[16px] bg-white w-full">
+          <h2 className="text-[16px] font-semibold text-[#1F1F36]">
+            Affiliate offer clicks
+          </h2>
+          <p className="text-[28px] font-bold text-[#1F1F36] mt-2">
+            {OfferClickStats.total}
+          </p>
+          <p className="text-[13px] text-[#7C7A8F]">
+            all time
+            {OfferClickStats.topPartner
+              ? ` · top partner: ${OfferClickStats.topPartner}`
+              : ""}
+          </p>
         </div>
       </div>
     </div>
